@@ -1,7 +1,11 @@
+import { MODULE, MODULE_DIR } from "./const.js";
+import { registerSettings, cacheWfxSettings, toggleApp } from "./settings.js";
+import { generateWeather } from "./weatherdata.js";
 
-
-Hooks.on('renderSmallTimeApp', function (app, html) {
-    const injection = `<form class="flexcol" id="weather-app">
+Hooks.on('renderSmallTimeApp', async function (app, html) {
+    const template = await fetch(`modules/smallweather/templates/smallweather.html`);
+    const injection = await template.text();
+    /*`<form class="flexcol" id="weather-app">
                         <div id="displayContainer">
                             <div id="current-temp">
                                 <img id="temp-icon" src="/modules/weatherfx/images/clearSky.webp" alt="heavyRain"></img>
@@ -18,7 +22,7 @@ Hooks.on('renderSmallTimeApp', function (app, html) {
                             <div id="weather-text">Clear conditions throughout the day.</div>
                         </div>
                         <div id="rightHandle"></div>
-                        </form>`;
+                        </form>`;*/
     const dragHandle = html.find('#dragHandle')
     const formGroup = dragHandle.closest("form");
     formGroup.after(injection);

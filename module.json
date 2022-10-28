@@ -1,12 +1,12 @@
 {
   "id": "smallweather",
-  "title": "Module Name",
+  "title": "SmallWeather",
   "description": "This module...",
   "version": "This is auto replaced",
   "library": "false",
   "manifestPlusVersion": "1.2.0",
   "compatibility": {
-    "minimum": "9",
+    "minimum": "10",
     "verified": "10"
   },
   "authors": [
@@ -15,7 +15,7 @@
       "url": "https://github.com/LeafWulf/",
       "discord": "winterwulf#3118",
       "ko-fi": "winterwulf",
-      "twitter": "@vvinterwulf"
+      "twitter": "@odragaoverde"
     }
   ],
   "relationships": {
