@@ -1,5 +1,5 @@
 {
-  "id": "<repo-name>",
+  "id": "smallweather",
   "title": "Module Name",
   "description": "This module...",
   "version": "This is auto replaced",
@@ -23,13 +23,13 @@
     "requires": []
   },
   "esmodules": [
-    "scripts/<repo-name>.js"
+    "scripts/smallweather.js"
   ],
   "scripts": [
     "scripts/lib/lib.js"
   ],
   "styles": [
-    "styles/<repo-name>.css"
+    "styles/smallweather.css"
   ],
   "languages": [
     {
@@ -41,17 +41,17 @@
   "url": "This is auto replaced",
   "manifest": "This is auto replaced",
   "download": "This is auto replaced",
-  "license": "https://github.com/LeafWulf/<repo-name>/blob/master/LICENSE",
-  "readme": "https://github.com/LeafWulf/<repo-name>/blob/master/README.md",
-  "bugs": "https://github.com/LeafWulf/<repo-name>/issues",
+  "license": "https://github.com/LeafWulf/smallweather/blob/master/LICENSE",
+  "readme": "https://github.com/LeafWulf/smallweather/blob/master/README.md",
+  "bugs": "https://github.com/LeafWulf/smallweather/issues",
   "media": [
     {
       "type": "icon",
-      "url": "https://raw.githubusercontent.com/LeafWulf/<repo-name>/master/readme/icon.png"
+      "url": "https://raw.githubusercontent.com/LeafWulf/smallweather/master/readme/icon.png"
     },
     {
       "type": "cover",
-      "url": "https://raw.githubusercontent.com/LeafWulf/<repo-name>/master/readme/cover.png"
+      "url": "https://raw.githubusercontent.com/LeafWulf/smallweather/master/readme/cover.png"
     }
   ]
 }
