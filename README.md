@@ -2,7 +2,7 @@
 [![Latest Downloads](https://img.shields.io/github/downloads/LeafWulf/smallweather/latest/module.zip?color=blue&label=latest%20downloads)](https://github.com/LeafWulf/smallweather/releases/latest) [![Total Downloads](https://img.shields.io/github/downloads/LeafWulf/smallweather/module.zip?color=blue&label=total%20downloads)](https://github.com/LeafWulf/smallweather/releases)  
 [![Discord](https://dcbadge.vercel.app/api/shield/219289132235489280?style=flat)](https://discordapp.com/users/219289132235489280) [![Ko-fi](https://img.shields.io/badge/Ko--fi-winterwulf-0374b5?logo=kofi)](https://ko-fi.com/winterwulf)
 
-# Module Name
+# SmallWeather
 This module...
 
 ## Functions
@@ -31,7 +31,7 @@ If you have suggestions or want to report a problem, you can create an issue her
 You can read the changelog here: [CHANGELOG.md](/CHANGELOG.md)
 
 ## Special Thanks
-`Peterson`
+`Peterson`, `roi007leaf` and `ApoApostolov` for his great idea!
 
 ## Donations
 The module is totally free and will remain this way.  
