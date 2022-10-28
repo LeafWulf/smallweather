@@ -1,0 +1,23 @@
+name: index.html Generator
+
+on:
+  create:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      ### Generate Index File
+      - name: Generating Index File
+        run: |
+          sudo apt-get install python3 
+          INPUT_STORE=${{ github.event.repository.url }} python3 .github/py_repo_tools/generate_index_file.py
+
+      ### Optimize / Compress Image
+      - name: Optimizing Images
+        run: |
+          sudo apt-get install python3 python3-pip
+          pip3 install pillow optimize-images
+          optimize-images ./
