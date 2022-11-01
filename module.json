@@ -29,7 +29,8 @@
     "scripts/lib/lib.js"
   ],
   "styles": [
-    "styles/smallweather.css"
+    "styles/smallweather.css",
+    "styles/config.css"
   ],
   "languages": [
     {

@@ -1,18 +1,19 @@
 <form class="flexcol" id="weather-app">
-    <div id="displayContainer">
+    <div id="displayContainer-weatherapp">
         <div id="current-temp">
             <img id="temp-icon" src="/modules/weatherfx/images/clearSky.webp" alt="heavyRain"></img>
-            <span id="temp"> 68.7F</span>
+            <span id="temp"> ${currentWeather.feelslike}${unit.temp}</span>
         </div>
         <div id="high-low">
-            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp"> 78.8F</span><br>
-            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp"> 60.6F</span>
+            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikemax}${unit.temp}</span><br>
+            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikemin}${unit.temp}</span>
         </div>
         <div id="wind">
-            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> Moderate Breeze</span><br>
-            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> SE</span>
+            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${currentWeather.windspeed}</span><br>
+            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddir}</span>
         </div>
-        <div id="weather-text">Clear conditions throughout the day.</div>
+        <div id="configWeather"><i class="fa-regular fa-circle-check"></i></div>
+        <div id="weather-text">${currentWeather.conditions}</div>
     </div>
     <div id="rightHandle"></div>
 </form>

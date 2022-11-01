@@ -1,0 +1,33 @@
+<form class="flexcol" id="sw-config">
+    <div id="displayContainer-sw-config" style="width: 500px; height: 500px">
+        <h2 class="border">SmallWeather: Configuration</h2>
+        <div class="form-group">
+            <label>Location</label>
+            <div class="form-fields">
+                <input type="text" name="location" value={{location}} data-dtype="String">
+            </div>
+            <p class="notes">Name of the City or Airport to fetch information.</p>
+        </div>
+        <div class="form-group">
+            <label for="start">Start date:</label>
+
+            <input type="date" id="start" name="startdate" value={{startdate}} min="1970-01-01" max="2022-12-31">
+            <p class="notes">Set a start date for the query.</p>
+        </div>
+        <div class="form-group">
+            <label>Length of Query</label>
+            <div class="form-fields">
+                <input type="range" name="querylength" data-dtype="Number" value={{querylength}} min="1" max="30"
+                    step="1">
+                <span class="range-value">{{querylength}}</span>
+            </div>
+            <p class="notes">Defines the number of days to fetch from the API.</p>
+        </div>
+        <div class="form-group submenu">
+            <label>Set Configuration</label>
+            <button type="button" id="sw-config-save">
+                <i class="fas fa-save"></i>
+                <label>Save Changes</label>
+            </button>
+        </div>
+</form>
