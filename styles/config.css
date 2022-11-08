@@ -1,0 +1,72 @@
+div#sw-config-app {
+    height: auto !important;
+}
+
+form#sw-config {
+    display: block;
+    height: 72px;
+}
+
+#weather-preview {
+    display: flex;
+    font-size: 14px;
+    margin: 4px;
+    /* justify-content: center; */
+    border: 1px solid #999;
+    border-radius: 8px;
+    margin: 8px 0;
+    padding: 0 15px 5px 15px;
+    background: darkgray;
+    height: 72px;
+}
+
+#preview-temp {
+    display: flex;
+    align-items: center;
+    font-size: 30px;
+    font-family: helvetica;
+}
+
+#preview-info {
+    text-align: left;
+    padding: 0 2px 0 2px;
+    margin-left: 10px;
+    font-size: 12px;
+    align-self: center;
+}
+
+.preview-string {
+    text-align: center !important;
+}
+
+#preview-temp-icon {
+    margin-top: 2px;
+    border: none;
+    width: 46px !important;
+}
+
+legend#wpreview {
+    font-weight: bolder;
+    top: -9px;
+    position: relative;
+}
+
+hr#separator-sw-config {
+    border-top: 1px solid var(--color-border-light-primary);
+    border-bottom: 1px solid var(--color-border-light-highlight);
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+nav#tab-sw-config {
+    margin: 4px 0;
+    border-top: 1px solid var(--color-border-light-primary);
+    border-bottom: 1px solid var(--color-border-light-primary);
+    padding: 8px 12px;
+}
+
+label.toggle-switchy {
+    position: relative;
+    left: 10%;
+    margin-bottom: 4px;
+}

@@ -1,20 +1,29 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { addDays } from "./util.js";
-import { weatherAPIKey, currentConfig, debug, cacheWfxSettings } from "./settings.js";
+import { weatherAPIKey, currentConfig, debug, cacheSettings, mode, system } from "./settings.js";
+import { setClimateWater } from "./climate.js";
 
 //"&include=alerts%2Ccurrent%2Cdays%2Cevents%2Chours";
 // 97JMBZAX2DRQ96SR2QT28K7WH
+// 78WK5HM86QBUYJ394TZGC2HLA
 
-export async function getWeather(cache = true) {
+export async function getWeather(cache = true, days = 0, query = currentConfig.querylength, apiParameters = {}) {
     if (!weatherAPIKey) return
+    let hourly = currentConfig.hourly
 
-    let apiParameters = {
-        dataUnit: "metric", //metric, us, uk
+    let apiDefaultParameters = {
+        dataUnit: 'us', //metric, us, uk
         location: currentConfig.location,
-        date: currentConfig.startdate,
-        dateFinal: addDays(currentConfig.startdate, currentConfig.querylength),
-        include: "&include=days"
+        date: addDays(currentConfig.startdate, days),
+        dateFinal: addDays(currentConfig.startdate, query),
+        include: "&include=alerts%2Cdays"
     }
+    if (hourly) apiDefaultParameters.include += '%2Cevents%2Chours'
+
+    if (mode === 'basic'){
+        apiParameters = setClimateWater(currentConfig.climate, days)
+    }
+    apiParameters = { ...apiDefaultParameters, ...apiParameters }
 
     let simpleCalendarData = {
         timestamp: game.time.worldTime,
@@ -27,24 +36,29 @@ export async function getWeather(cache = true) {
 
     let url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${apiParameters.location}/${apiParameters.date}/${apiParameters.dateFinal}?unitGroup=${apiParameters.dataUnit}${apiParameters.include}&key=${weatherAPIKey}&contentType=json`
 
-    if (debug) {
-        console.log(apiParameters.location, apiParameters.date, apiParameters.dateFinal)
-        console.log(currentConfig.location, currentConfig.querylength, currentConfig.startdate)
-        console.log(url)
+    if (true) {
+        console.info("⛅ SmallWeather Debug | async function getWeather. Api Parameters Data", /* apiParameters.location, */ apiParameters.date, apiParameters.dateFinal)
+        console.info("⛅ SmallWeather Debug | async function getWeather. Current Config Data", currentConfig.location, currentConfig.querylength, currentConfig.startdate)
+        // console.info("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
+        // console.info(url)
     }
 
+
+    // return game.settings.get('smallweather', "apiWeatherData")
     let apiCall = await fetch(url, {
         "method": "GET",
         "headers": {}
     })
+
+    if (!apiCall.ok) return
 
     let response = await apiCall.json()
     if (cache) {
         await game.settings.set(MODULE, "apiWeatherData", response)
         await game.settings.set(MODULE, "simpleCalendarData", simpleCalendarData)
         await game.settings.set(MODULE, "apiParametersCache", apiParameters)
-        await game.settings.set(MODULE, "lastDateUsed", apiParameters.date)
-        cacheWfxSettings();
+        await game.settings.set(MODULE, "lastDateUsed", simpleCalendarData.timestamp)
+        cacheSettings();
     }
 
     return response

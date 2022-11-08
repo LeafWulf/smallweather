@@ -1,4 +1,22 @@
 import { MODULE, MODULE_DIR } from "./const.js";
+import { debug, cacheSettings } from "./settings.js";
+
+export async function treatWeatherObj(currentWeather, cache, system, feelslikemax, feelslikemin) {
+    // if ( currentWeather.windspeed == null || currentWeather.winddir == null || currentWeather.feelslike == null ) return
+    currentWeather.windspeedFriendly = stringfyWindSpeed(currentWeather.windspeed)
+    currentWeather.winddirFriendly = stringfyWindDir(currentWeather.winddir)
+    currentWeather.feelslikeC = roundNoFloat(fahrToCelsius(system, currentWeather.feelslike))
+    currentWeather.feelslikemaxC = roundNoFloat(fahrToCelsius(system, feelslikemax))
+    currentWeather.feelslikeminC = roundNoFloat(fahrToCelsius(system, feelslikemin))
+    currentWeather.unit = unit(system)
+    await game.settings.set(MODULE, "lastDateUsed", SimpleCalendar.api.timestamp())
+
+    if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
+    if (cache) {
+        await game.settings.set(MODULE, "currentWeather", currentWeather)
+        cacheSettings();
+    }
+}
 
 export function addDays(date, days) {
     let result = new Date(date);
@@ -6,27 +24,41 @@ export function addDays(date, days) {
     return dateToString(result)
 }
 
-export function dateToString (unixDate){
+export function dateToString(unixDate) {
     let dateString = `${unixDate.getUTCFullYear()}-${pad2(unixDate.getUTCMonth() + 1)}-${pad2(unixDate.getUTCDate())}`;
     return dateString
 }
 
-function pad2(number) {
+export function unit(system) {
+    switch (system) {
+        case 'metric': return 'ºC'
+        case 'uk': return 'ºC'
+        case 'us': return 'F'
+    }
+}
+
+export function pad2(number) {
     return (number < 10 ? '0' : '') + number
 }
 
-export function advanceOneDay(string){
-   let nextDay = addDays(string, 1)
-   return nextDay
+export function fahrToCelsius(system, fahrTemp) {
+    if (system === 'us') return fahrTemp
+    else {
+        let celsiusTemp = (fahrTemp - 32) * 5 / 9
+        return celsiusTemp
+    }
 }
 
-export function returnOneDay(string){
-   let nextDay = addDays(string, -1)
-   return nextDay
+export function mphToKph(system, mph) {
+    if (system === 'us') return mph
+    else {
+        let kph = mph * 1.60934
+        return kph
+    }
 }
 
 export function stringfyWindSpeed(number) { // table from https://www.weather.gov/pqr/wind
-    if (number = 0) return 'calm'
+    if (number == 0) return 'calm'
     else if (number <= 3) return 'Light Air'
     else if (number <= 7) return 'Light Breeze'
     else if (number <= 12) return 'Gentle Breeze'

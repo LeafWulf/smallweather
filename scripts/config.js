@@ -1,5 +1,8 @@
 import { MODULE, MODULE_DIR } from "./const.js";
-import { debug, cacheWfxSettings } from "./settings.js";
+import { debug, cacheSettings, mode } from "./settings.js";
+import { dateToString } from "./util.js";
+import { setClimateWater } from "./climate.js";
+import { weatherUpdate } from "./smallweather.js";
 
 export class ConfigApp extends FormApplication {
     static _isOpen = true;
@@ -12,11 +15,11 @@ export class ConfigApp extends FormApplication {
         await super._render(force, options);
         ConfigApp._isOpen = true;
         // Remove the window from candidates for closing via Escape.
-        delete ui.windows[this.appId];
+        // delete ui.windows[this.appId];
     }
 
-    /**
-    * Shows the application window
+    /********************************
+    *** Shows the application window
     **/
     showApp() {
         this.render(true);
@@ -30,17 +33,17 @@ export class ConfigApp extends FormApplication {
     }
 
     async _updateObject(ev, formData) {
-        if (debug) console.log(ev, formData)
+        if (debug) console.info(ev, formData)
         this.currentConfig = formData
-        if (debug) console.log(this)
+        if (debug) console.info(this)
     }
     // async _onSubmit(ev, formData)
     // {
-    //if (debug) console.log(ev, formData)
+    //if (debug) console.info(ev, formData)
     // }
     // async _onChangeInput(ev, formData)
     // {
-    //if (debug) console.log(ev, formData)
+    //if (debug) console.info(ev, formData)
     // }
 
     static get defaultOptions() {
@@ -55,26 +58,45 @@ export class ConfigApp extends FormApplication {
             closeOnSubmit: false,
             minimizable: false,
             template: `${MODULE_DIR}/templates/config.html`,
+            tabs: [{ navSelector: ".tabs", contentSelector: ".content", initial: mode }],
             id: 'sw-config-app',
-            title: 'SmallWeather Config',
+            title: 'SmallWeather Configuration',
             top: this.initialPosition.top,
             left: this.initialPosition.left,
+            heigh: "auto",
         });
     }
 
     activateListeners(html) {
         super.activateListeners(html);
-        this.appWindow = document.getElementById('sw-config')
-        // if (debug) console.log('==============================================THIS',this)
 
+
+        // if (debug) console.info('==============================================THIS', this)
+        // this.appWindow = document.getElementById('sw-config')
         // this.appWindow.querySelector("#sw-config-save")?.addEventListener('click', async function () {
         //     await ConfigApp.writeInputValuesToObjects(document.getElementById('sw-config'))
         // })
+
         // $('#sw-config-save').on('click', async function () {
         //     ConfigApp.writeInputValuesToObjects(document.getElementById('sw-config'))
         // }) 
+
+        // $('.item').on('click', async function () {
+        //     // console.info(this)
+        // })
+
+        // let climateOptions = Array.from ($('select[name="climate"]')[0].options)
+        // climateOptions.find(i=> i.value === climate).selected = true
+
+        let climate = game.settings.get(MODULE, 'currentConfig').climate
+        let climateOptions = Array.from(html.find('select[name="climate"]')[0])
+        climateOptions.find(i=> i.value === climate ).selected = true
+
         html.find('#sw-config-save').on('click', async function () {
-            await ConfigApp.save()
+            let tab = html.find('.tab.active').attr('data-tab')
+            let currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
+            await ConfigApp.save(tab)
+            await weatherUpdate(currentHour)
             game.modules.get(MODULE).configApp.close()
         })
     }
@@ -82,20 +104,31 @@ export class ConfigApp extends FormApplication {
     getData() {
         // Send values to the HTML template.
         let currentConfig = game.settings.get(MODULE, 'currentConfig')
+        let currentWeather = game.settings.get(MODULE, 'currentWeather')
+        let today = dateToString(new Date())
+        let maxYear = new Date().getUTCFullYear() - 1
         return {
             location: currentConfig.location,
             startdate: currentConfig.startdate,
-            querylength: currentConfig.querylength
+            querylength: currentConfig.querylength,
+            today,
+            currentWeather,
+            maxYear,
+            hourly: currentConfig.hourly ? 'checked' : 'unchecked',
+            startyear: currentConfig.startyear,
+            climate: currentConfig.climate
         }
     }
 
     //preciso validar os campos, se houve alteração e se são validos (não são strings vazias ou sei la oq)
-    static async save() {
+    static async save(tab) {
         let formData = game.modules.get(MODULE).configApp.currentConfig
-        if (debug) console.log(formData)
+        if (debug) console.info(formData)
         if (formData) {
             await game.settings.set(MODULE, 'currentConfig', formData);
-            cacheWfxSettings();
+            // if (tab === 'basic') // chamar a função, não sei qual ainda
+            await game.settings.set(MODULE, 'mode', tab);
+            cacheSettings();
         }
     }
 
@@ -109,8 +142,8 @@ export class ConfigApp extends FormApplication {
         const el = root.querySelector(`input[name=${selector}]`);
         el ? el.value : defaultVal;
         await game.settings.set(MODULE, selector, el);
-        cacheWfxSettings();
-        // if (debug) console.log(el)
+        cacheSettings();
+        // if (debug) console.info(el)
     }
 
     // Toggle visibility of the main window.

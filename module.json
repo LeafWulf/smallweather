@@ -30,7 +30,8 @@
   ],
   "styles": [
     "styles/smallweather.css",
-    "styles/config.css"
+    "styles/config.css",
+    "styles/toggle-switchy.css"
   ],
   "languages": [
     {

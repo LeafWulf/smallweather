@@ -5,14 +5,16 @@
             <span id="temp"> ${currentWeather.feelslike}${unit.temp}</span>
         </div>
         <div id="high-low">
-            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikemax}${unit.temp}</span><br>
-            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikemin}${unit.temp}</span>
+            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp">
+                ${currentWeather.feelslikemax}${unit.temp}</span><br>
+            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp">
+                ${currentWeather.feelslikemin}${unit.temp}</span>
         </div>
         <div id="wind">
-            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${currentWeather.windspeed}</span><br>
-            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddir}</span>
+            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${currentWeather.windspeedFriendly}</span><br>
+            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
         </div>
-        <div id="configWeather"><i class="fa-regular fa-circle-check"></i></div>
+        <div id="configWeather"><i class="fa-solid fa-bars"></i></div>
         <div id="weather-text">${currentWeather.conditions}</div>
     </div>
     <div id="rightHandle"></div>

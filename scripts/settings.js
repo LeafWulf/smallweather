@@ -1,12 +1,11 @@
+import { ConfigApp } from "./config.js";
 import { MODULE } from "./const.js"
+import { weatherUpdate } from "./smallweather.js";
 
-export let toggleApp = null;
+export let mode = 'basic';
 export let weatherAPIKey = null;
 export let currentWeather = null;
-export let unit = {
-    temp: 'ºC',
-    unit: 'metric'
-}
+export let system = 'us'
 export let currentConfig = {
     location: '',
     startdate: '',
@@ -21,17 +20,43 @@ export let debug = true
 
 export function registerSettings() {
     game.settings.register(MODULE, 'weatherAPIKey', {
-        name: 'Weather API',
-        hint: `Fetch weather data from an online API instead of locally generating it.`,
+        name: 'Weather API Key',
+        hint: `In order to generate your API key go to: https://www.visualcrossing.com/sign-up, save it and paste up here. `,
         scope: 'world',
         config: true,
         type: String,
         default: '',
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
+    game.settings.register(MODULE, 'unitSystem', {
+        name: 'Unit System',
+        hint: `Choose the unit system.`,
+        scope: 'world',
+        config: true,
+        type: String,
+        choices: {
+            "us": "Imperial/US",
+            "metric": "Metric"
+        },
+        default: system,
+        restricted: true,
+        onChange: async () => {
+            cacheSettings();
+            await weatherUpdate(0, false, false);
+        },
+    });
+    game.settings.registerMenu(MODULE, "weatherApiConfig", {
+        name: "Weather API Configuration",
+        label: "Weather API",
+        hint: "Dialog for API fetch configuration, this can be accessed in the module floating window too.",
+        icon: 'fas fa-cogs',
+        type: ConfigApp,
+        restricted: true
+    });
+
 
     game.settings.register(MODULE, 'currentWeather', {
         name: 'weatherData',
@@ -42,23 +67,21 @@ export function registerSettings() {
         default: currentWeather,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
-
-    game.settings.register(MODULE, 'toggleApp', {
-        name: 'toggleApp',
+    game.settings.register(MODULE, 'mode', {
+        name: 'mode',
         hint: '',
         scope: 'world',
         config: false,
-        type: Number,
-        default: 1,
+        type: String,
+        default: mode,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
-
     game.settings.register(MODULE, 'show', {
         name: 'show',
         hint: '',
@@ -68,7 +91,7 @@ export function registerSettings() {
         default: false,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
 
@@ -84,7 +107,7 @@ export function registerSettings() {
         default: currentConfig,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
     game.settings.register(MODULE, 'apiWeatherData', {
@@ -96,7 +119,7 @@ export function registerSettings() {
         default: null,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
     game.settings.register(MODULE, 'simpleCalendarData', {
@@ -108,7 +131,7 @@ export function registerSettings() {
         default: '',
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
     game.settings.register(MODULE, 'apiParametersCache', {
@@ -120,7 +143,7 @@ export function registerSettings() {
         default: '',
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
     game.settings.register(MODULE, 'lastDateUsed', {
@@ -132,7 +155,7 @@ export function registerSettings() {
         default: '',
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
 
@@ -148,14 +171,15 @@ export function registerSettings() {
         default: debug,
         restricted: true,
         onChange: () => {
-            cacheWfxSettings();
+            cacheSettings();
         },
     });
 }
 
 // function that get the settings options and assign to the variables
-export async function cacheWfxSettings() {
-    toggleApp = game.settings.get(MODULE, 'toggleApp');
+export async function cacheSettings() {
+    mode = game.settings.get(MODULE, 'mode');
+    system = game.settings.get(MODULE, 'unitSystem');
     currentWeather = game.settings.get(MODULE, 'currentWeather');
     weatherAPIKey = game.settings.get(MODULE, 'weatherAPIKey');
     currentConfig = game.settings.get(MODULE, 'currentConfig');

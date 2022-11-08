@@ -144,7 +144,7 @@
 
 #weather-app #rightHandle {
     top: 10%;
-    background: url('../images/denim-dark-090.png') repeat;
+    background: url('../images/denim-dark-090.webp') repeat;
     background-blend-mode: screen;
     background-color: rgba(0, 0, 0, 1);
     width: 103%;
