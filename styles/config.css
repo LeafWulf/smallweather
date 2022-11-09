@@ -7,10 +7,6 @@ form#sw-config {
     height: 72px;
 }
 
-#weather-preview-table {
-    left: 517px;
-}
-
 #weather-preview {
     display: flex;
     font-size: 14px;
@@ -73,4 +69,33 @@ label.toggle-switchy {
     position: relative;
     left: 10%;
     margin-bottom: 4px;
+}
+
+#weather-preview-table {
+    left: 517px;
+    position: absolute;
+    top: 30px;
+    height: 93.4%;
+    padding: 7px 7px 7px 7px;
+    transition: transform 0.5s ease;
+    transform: scaleX(0);
+    transform-origin: left;
+    overflow-y: scroll;
+
+    background: url(../ui/parchment.jpg) repeat;
+}
+#weather-preview-table.show {
+    transform: scaleX(1);
+    transition: transform 0.5s ease;
+    box-shadow: inset 0px 0px 10px 2px rgb(0 0 0 / 70%);
+}
+table.responstable {
+    text-align: center;
+}
+
+table thead.previewtable {
+    top: 0;
+    position: sticky;
+    z-index: 1;
+    background: #444;
 }

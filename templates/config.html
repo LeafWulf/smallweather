@@ -53,6 +53,26 @@
                 </div>
                 <p class="notes">Defines the number of days to fetch from the API.</p>
             </div>
+
+            <!-- Side Tables -->
+            <section id="weather-preview-table" style="width: 100%; background: url(../ui/parchment.jpg) repeat;">
+
+                <h2 style="text-align: center;">Weather Forecast</h2>
+
+                <table class="responstable">
+                    <thead class="previewtable">
+                        <tr>
+                            <th>Select Weather</th>
+                            <th>Feels Like</th>
+                            <th>Description</th>
+                            <th>Wind Speed</th>
+                            <th>Wind Direction</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                </table>
+            </section>
+
         </div>
     </section>
     <div class="form-group">
@@ -63,9 +83,15 @@
                 <span class="switch"></span>
             </span>
         </label>
-        <p class="notes">Choose if the API request should fetch hourly or daily values. Query cost for hourly values cost 24 times
+        <p class="notes">Choose if the API request should fetch hourly or daily values. Query cost for hourly values
+            cost 24 times
             more.</p>
     </div>
+    <!-- Apply Weather -->
+    <button class="form-fields" type="button" id="apply-preview">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <label>Preview Weather</label>
+    </button>
     <hr id="separator-sw-config">
     <!-- Preview Weather -->
     <fieldset id="weather-preview">
@@ -94,8 +120,4 @@
         <i class="fas fa-save"></i>
         <label>Save Changes</label>
     </button>
-    <!-- Side Tables -->
-    <section id="weather-preview-table">
-        
-    </section>
 </form>

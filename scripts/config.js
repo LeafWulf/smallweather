@@ -1,8 +1,9 @@
 import { MODULE, MODULE_DIR } from "./const.js";
-import { debug, cacheSettings, mode } from "./settings.js";
-import { dateToString } from "./util.js";
+import { debug, cacheSettings, mode, system } from "./settings.js";
+import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate } from "./smallweather.js";
+import { getWeather } from "./weatherdata.js";
 
 export class ConfigApp extends FormApplication {
     static _isOpen = true;
@@ -48,8 +49,8 @@ export class ConfigApp extends FormApplication {
 
     static get defaultOptions() {
         this.initialPosition = {
-            top: ((screen.availHeight) / 2) - 272,
-            left: (screen.availWidth - 516) / 2
+            top: (screen.availHeight - 489) / 4,
+            left: (screen.availWidth - 516) / 4
         }
         return mergeObject(super.defaultOptions, {
             classes: ['form'],
@@ -69,7 +70,9 @@ export class ConfigApp extends FormApplication {
 
     activateListeners(html) {
         super.activateListeners(html);
-
+        let tab
+        let currentHour
+        let app = ui.activeWindow
 
         // if (debug) console.info('==============================================THIS', this)
         // this.appWindow = document.getElementById('sw-config')
@@ -93,12 +96,54 @@ export class ConfigApp extends FormApplication {
         climateOptions.find(i => i.value === climate).selected = true
 
         html.find('#sw-config-save').on('click', async function () {
-            let tab = html.find('.tab.active').attr('data-tab')
-            let currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
+            tab = html.find('.tab.active').attr('data-tab')
+            currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             await ConfigApp.save(tab)
-            await weatherUpdate({hours: currentHour})
+            await weatherUpdate({ hours: currentHour })
             game.modules.get(MODULE).configApp.close()
         })
+        html.find('#apply-preview').on('click', async function () {
+            tab = html.find('.tab.active').attr('data-tab')
+            currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
+            let preview = {
+                dataUnit: system,
+                location: app.currentConfig?.location || app.getData().location,
+                date: app.currentConfig?.startdate || app.getData().startdate,
+                dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength || app.getData().querylength)
+            }
+            // if (tab === 'basic') //mudar valores de preview
+            // console.warn(preview)
+            let row = ''
+            let previewWeather = await app.weatherUpdate({ hours: currentHour, cacheData: false }, preview);
+            previewWeather.forEach(element => {
+                row += `<tr>
+                            <td><input type="radio"/></td>
+                            <td>${element.feelslike}${unit(system)}</td>
+                            <td>${element.conditions}</td>
+                            <td>${stringfyWindSpeed(element.windspeed)}</td>
+                            <td>${stringfyWindDir(element.winddir)}</td>
+                            <td>${addDays(element.datetime,0)}</td>
+                        </tr>`
+            });
+            $('.responstable').append(row)
+            
+
+            $('#weather-preview-table').addClass('show')
+        })
+    }
+
+    async weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}, preview = {}) {
+        let newWeather
+        let currentWeather
+
+        newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData }, preview);
+
+        // if (hourly) currentWeather = newWeather.days[days].hours[hours]
+        /* else */ currentWeather = newWeather.days
+
+        if (true) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
+
+        return currentWeather
     }
 
     getData() {
@@ -134,24 +179,9 @@ export class ConfigApp extends FormApplication {
         cacheSettings();
     }
 
-    //Daqui pra baixo deu errado, eu nao soube fazer. Inventei diferente pra conseguir rodar.
-
-    static async writeInputValuesToObjects(root) {
-        await this.getInputValue('location', '', root);
-    }
-
-    static async getInputValue(selector, defaultVal, root) {
-        const el = root.querySelector(`input[name=${selector}]`);
-        el ? el.value : defaultVal;
-        await game.settings.set(MODULE, selector, el);
-        cacheSettings();
-        // if (debug) console.info(el)
-    }
-
     // Toggle visibility of the main window.
     static async toggleAppVis(mode) {
         if (!game.modules.get('smalltime').viewAuth) return;
         else game.modules.get(MODULE).configApp = await new ConfigApp().render(true);
     }
-
 }

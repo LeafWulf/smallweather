@@ -24,7 +24,7 @@ Hooks.on('renderSmallTimeApp', async function (app, html) {
     if (game.modules.get('smalltime')?.active) {
         await injectIntoSmallTime(currentWeatherCache)
     }
-    // ConfigApp.toggleAppVis('init');
+    ConfigApp.toggleAppVis('init');
 })
 
 Hooks.on("renderSettingsConfig", async function (app, html) {
@@ -195,6 +195,7 @@ async function injectIntoSmallTime(currentWeather) {
 export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}) {
     let newWeather
     let currentWeather
+    hourly = currentConfig.hourly // colocar como variavel global que muda sempre quando salva o cachesettings
 
     console.info("⛅ SmallWeather Debug | weatherUpdate function. variable apiWeatherData.days[days]: ", days, hours, apiWeatherData.days[days])
     if (!apiWeatherData.days[days]) fetchAPI = true
