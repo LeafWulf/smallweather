@@ -91,7 +91,7 @@ export class ConfigApp extends FormApplication {
         // let climateOptions = Array.from ($('select[name="climate"]')[0].options)
         // climateOptions.find(i=> i.value === climate).selected = true
 
-        let climate = game.settings.get(MODULE, 'currentConfig').climate
+        let climate = game.settings.get(MODULE, 'currentConfig')?.climate || 'tropical'
         let climateOptions = Array.from(html.find('select[name="climate"]')[0])
         climateOptions.find(i => i.value === climate).selected = true
 
@@ -122,11 +122,11 @@ export class ConfigApp extends FormApplication {
                             <td>${element.conditions}</td>
                             <td>${stringfyWindSpeed(element.windspeed)}</td>
                             <td>${stringfyWindDir(element.winddir)}</td>
-                            <td>${addDays(element.datetime,0)}</td>
+                            <td>${addDays(element.datetime, 0)}</td>
                         </tr>`
             });
             $('.responstable').append(row)
-            
+
 
             $('#weather-preview-table').addClass('show')
         })
@@ -153,9 +153,9 @@ export class ConfigApp extends FormApplication {
         let today = dateToString(new Date())
         let maxYear = new Date().getUTCFullYear() - 1
         return {
-            location: currentConfig.location,
-            startdate: currentConfig.startdate,
-            querylength: currentConfig.querylength,
+            location: currentConfig?.location || 'Havana',
+            startdate: currentConfig?.startdate || '2009-01-01',
+            querylength: currentConfig?.querylength || 14,
             today,
             currentWeather,
             maxYear,

@@ -7,9 +7,9 @@ export let weatherAPIKey = null;
 export let currentWeather = null;
 export let system = 'us'
 export let currentConfig = {
-    location: '',
-    startdate: '',
-    querylength: ''
+    location: 'Havana',
+    startdate: '2009-01-01',
+    querylength: '14'
 }
 
 export let lastDateUsed

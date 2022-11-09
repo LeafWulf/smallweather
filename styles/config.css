@@ -91,6 +91,7 @@ label.toggle-switchy {
 }
 table.responstable {
     text-align: center;
+    font-size: smaller;
 }
 
 table thead.previewtable {
