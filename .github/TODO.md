@@ -1,0 +1,2 @@
+- [ ] keep a cached copy of the previous day weather, in case the GM needs to comeback in time.  
+- [ ] look if this is possible to keep like 5 days cached to save query cost.
