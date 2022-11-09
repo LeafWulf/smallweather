@@ -1,7 +1,7 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings } from "./settings.js";
 
-export async function treatWeatherObj(currentWeather, cache, system, feelslikemax, feelslikemin) {
+export async function treatWeatherObj(currentWeather, system, feelslikemax, feelslikemin) {
     // if ( currentWeather.windspeed == null || currentWeather.winddir == null || currentWeather.feelslike == null ) return
     currentWeather.windspeedFriendly = stringfyWindSpeed(currentWeather.windspeed)
     currentWeather.winddirFriendly = stringfyWindDir(currentWeather.winddir)
@@ -12,10 +12,9 @@ export async function treatWeatherObj(currentWeather, cache, system, feelslikema
     await game.settings.set(MODULE, "lastDateUsed", SimpleCalendar.api.timestamp())
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
-    if (cache) {
-        await game.settings.set(MODULE, "currentWeather", currentWeather)
-        cacheSettings();
-    }
+
+    await game.settings.set(MODULE, "currentWeather", currentWeather)
+    cacheSettings();
 }
 
 export function addDays(date, days) {

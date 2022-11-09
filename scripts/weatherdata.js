@@ -7,7 +7,7 @@ import { setClimateWater } from "./climate.js";
 // 97JMBZAX2DRQ96SR2QT28K7WH
 // 78WK5HM86QBUYJ394TZGC2HLA
 
-export async function getWeather(cache = true, days = 0, query = currentConfig.querylength, apiParameters = {}) {
+export async function getWeather({days = 0, query = currentConfig.querylength, cacheData = true} = {}, apiParameters = {}) {
     if (!weatherAPIKey) return
     let hourly = currentConfig.hourly
 
@@ -20,7 +20,7 @@ export async function getWeather(cache = true, days = 0, query = currentConfig.q
     }
     if (hourly) apiDefaultParameters.include += '%2Cevents%2Chours'
 
-    if (mode === 'basic'){
+    if (mode === 'basic') {
         apiParameters = setClimateWater(currentConfig.climate, days)
     }
     apiParameters = { ...apiDefaultParameters, ...apiParameters }
@@ -37,10 +37,10 @@ export async function getWeather(cache = true, days = 0, query = currentConfig.q
     let url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${apiParameters.location}/${apiParameters.date}/${apiParameters.dateFinal}?unitGroup=${apiParameters.dataUnit}${apiParameters.include}&key=${weatherAPIKey}&contentType=json`
 
     if (true) {
-        console.info("⛅ SmallWeather Debug | async function getWeather. Api Parameters Data", /* apiParameters.location, */ apiParameters.date, apiParameters.dateFinal)
-        console.info("⛅ SmallWeather Debug | async function getWeather. Current Config Data", currentConfig.location, currentConfig.querylength, currentConfig.startdate)
-        // console.info("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
-        // console.info(url)
+        console.warn("⛅ SmallWeather Debug | async function getWeather. Api Parameters Data", apiParameters.location, apiParameters.date, apiParameters.dateFinal)
+        console.warn("⛅ SmallWeather Debug | async function getWeather. Current Config Data", currentConfig.location, currentConfig.querylength, currentConfig.startdate)
+        // console.warn("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
+        // console.warn(url)
     }
 
 
@@ -53,13 +53,13 @@ export async function getWeather(cache = true, days = 0, query = currentConfig.q
     if (!apiCall.ok) return
 
     let response = await apiCall.json()
-    if (cache) {
-        await game.settings.set(MODULE, "apiWeatherData", response)
-        await game.settings.set(MODULE, "simpleCalendarData", simpleCalendarData)
-        await game.settings.set(MODULE, "apiParametersCache", apiParameters)
-        await game.settings.set(MODULE, "lastDateUsed", simpleCalendarData.timestamp)
-        cacheSettings();
-    }
+
+    if (cacheData) await game.settings.set(MODULE, "apiWeatherData", response) 
+    if (cacheData) await game.settings.set(MODULE, "simpleCalendarData", simpleCalendarData) 
+    // await game.settings.set(MODULE, "apiParametersCache", apiParameters) //acho que não tem pq salvar, só serviu pra debug
+    // await game.settings.set(MODULE, "lastDateUsed", simpleCalendarData.timestamp) //mesma info no simplecalendar data, acho que nao é necessario tb
+    cacheSettings();
+
 
     return response
 }

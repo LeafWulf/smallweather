@@ -90,13 +90,13 @@ export class ConfigApp extends FormApplication {
 
         let climate = game.settings.get(MODULE, 'currentConfig').climate
         let climateOptions = Array.from(html.find('select[name="climate"]')[0])
-        climateOptions.find(i=> i.value === climate ).selected = true
+        climateOptions.find(i => i.value === climate).selected = true
 
         html.find('#sw-config-save').on('click', async function () {
             let tab = html.find('.tab.active').attr('data-tab')
             let currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             await ConfigApp.save(tab)
-            await weatherUpdate(currentHour)
+            await weatherUpdate({hours: currentHour})
             game.modules.get(MODULE).configApp.close()
         })
     }
@@ -125,11 +125,13 @@ export class ConfigApp extends FormApplication {
         let formData = game.modules.get(MODULE).configApp.currentConfig
         if (debug) console.info(formData)
         if (formData) {
+            // if (tab === 'basic') {
+
+            // }
             await game.settings.set(MODULE, 'currentConfig', formData);
-            // if (tab === 'basic') // chamar a função, não sei qual ainda
-            await game.settings.set(MODULE, 'mode', tab);
-            cacheSettings();
         }
+        await game.settings.set(MODULE, 'mode', tab);
+        cacheSettings();
     }
 
     //Daqui pra baixo deu errado, eu nao soube fazer. Inventei diferente pra conseguir rodar.

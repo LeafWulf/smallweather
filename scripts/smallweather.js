@@ -7,6 +7,7 @@ import { weatherApp } from "./app.js"
 
 let currentWeatherCache
 let show
+let hourly
 
 Hooks.once("init", () => {
     registerSettings();
@@ -16,6 +17,7 @@ Hooks.once("init", () => {
 Hooks.once('ready', async function () {
     console.info(" ======================================== ⛅ SmallWeather ======================================== ")
     currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
+    hourly = currentConfig.hourly
 });
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
@@ -27,56 +29,70 @@ Hooks.on('renderSmallTimeApp', async function (app, html) {
 
 Hooks.on("renderSettingsConfig", async function (app, html) {
     console.info(app, html)
-    // $('div[data-settings-key="smallweather.weatherApiConfig"]').appendTo($('section[data-tab="smallweather"]'));
+    // $('div[data-settings-key="smallweather.weatherApiConfig"]').appendTo($('section[data-tab="smallweather"]')); //this code does the same thing
     const menu = html.find('div[data-settings-key="smallweather.weatherApiConfig"]');
-    const list = html.find('section[data-tab="smallweather"]'); // get the settings list
+    const list = html.find('section[data-tab="smallweather"]');
     list.append(menu);
 });
 
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, async function (data) {
-    if (debug) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
-    let currentFantasyDate = SimpleCalendar.api.dateToTimestamp({
-        year: data.date.year,
-        month: data.date.month,
-        day: data.date.day,
-        hour: data.date.hour,
-        minute: 0,
-        seconds: 0
-    })
-    let cachedFantasyDate = SimpleCalendar.api.dateToTimestamp({
+    if (true) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
+
+    let cachedDate = SimpleCalendar.api.dateToTimestamp({
         year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year,
         month: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).month,
         day: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).day,
-        hour: 0,
-        minute: 0,
-        seconds: 0
+        hour: 0, minute: 0, seconds: 0
     })
-    let currentFDZeroHour = SimpleCalendar.api.dateToTimestamp({year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0})
+    let currentDate = SimpleCalendar.api.dateToTimestamp({ year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0 })
+    let days = ((currentDate - cachedDate) / 86400) // index for the days array
+    let hours = data.date.hour //index for the hours array
+    if (!hourly) hours = 0;
 
-    if (true) console.info(`⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. currentFantasyDate: ${SimpleCalendar.api.timestampToDate(currentFantasyDate).display.date}, cachedFantasyDate: ${SimpleCalendar.api.timestampToDate(cachedFantasyDate).display.date}`)
-
-    if (hasDateChanged(currentFantasyDate)) {
-        await game.settings.set(MODULE, "lastDateUsed", SimpleCalendar.api.timestamp())
-        let days = /* Math.floor */((currentFDZeroHour - cachedFantasyDate) / 86400)
-        let hours = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
-        if (true) {
-            console.info("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. variable days: ", days, " and hours: ", hours)
-        }
-
-        if (0 <= days && days <= currentConfig.querylength && mode === 'advanced') {
-            // await weatherUpdate(hours, days, false, false)
-        }
+    if (await hasDateChanged(currentDate)) {
+        if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+            await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
         else {
             if (debug) console.warn("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. No more cached data to use")
-            await weatherUpdate(hours, 0, true, false, days) //use the day with index 0, checking the api but without caching the result.
-            // ta checando a API a cada hora, preciso mudar isso.
+            await weatherUpdate({ hours: hours, cacheData: false, queryLength: days }) //use the day with index 0, checking the api but without caching the result.
         }
     }
+
+    if (await hasHourChanged(currentDate, hours) && hourly) {
+        console.error("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange.: ", days, hours)
+        if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+            await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
+        else
+            await weatherUpdate({ hours: hours, fetchAPI: false, cacheData: false })
+    }
+
+    // if (true) console.info(`⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. currentFantasyDate: ${SimpleCalendar.api.timestampToDate(currentFantasyDate).display.date}, cachedFantasyDate: ${SimpleCalendar.api.timestampToDate(cachedFantasyDate).display.date}`)
 });
 
-function hasDateChanged(currentDate) {
+async function hasDateChanged(currentDate) {
     let lastDateUsed = game.settings.get(MODULE, "lastDateUsed")
-    let hourly = currentConfig.hourly
+    let previous = {
+        day: SimpleCalendar.api.timestampToDate(lastDateUsed).day,
+        month: SimpleCalendar.api.timestampToDate(lastDateUsed).month,
+        year: SimpleCalendar.api.timestampToDate(lastDateUsed).year
+    }
+    let date = {
+        day: SimpleCalendar.api.timestampToDate(currentDate).day,
+        month: SimpleCalendar.api.timestampToDate(currentDate).month,
+        year: SimpleCalendar.api.timestampToDate(currentDate).year
+    }
+    if (date.day !== previous.day
+        || date.month !== previous.month
+        || date.year !== previous.year) {
+        console.warn("⛅ SmallWeather Debug | hasDateChanged")
+        await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
+        return 'true';
+    }
+    return false;
+}
+
+async function hasHourChanged(currentDate, hours) {
+    let lastDateUsed = game.settings.get(MODULE, "lastDateUsed")
     let previous = {
         hour: SimpleCalendar.api.timestampToDate(lastDateUsed).hour,
         day: SimpleCalendar.api.timestampToDate(lastDateUsed).day,
@@ -84,29 +100,25 @@ function hasDateChanged(currentDate) {
         year: SimpleCalendar.api.timestampToDate(lastDateUsed).year
     }
     let date = {
-        hour: SimpleCalendar.api.timestampToDate(currentDate).hour,
+        hour: hours,
         day: SimpleCalendar.api.timestampToDate(currentDate).day,
         month: SimpleCalendar.api.timestampToDate(currentDate).month,
         year: SimpleCalendar.api.timestampToDate(currentDate).year
     }
-    if (debug) console.info("⛅ SmallWeather Debug | hasDateChanged. Previous: ", previous, "Current: ", date, "last Date Used", lastDateUsed)
-    if (hourly) {
-        if (date.hour !== previous.hour
-            || date.day !== previous.day
-            || date.month !== previous.month
-            || date.year !== previous.year) {
-                console.info("⛅ SmallWeather Debug | hasDateChanged Hour")
-            return true;
-        }
-        else if (date.day !== previous.day
-            || date.month !== previous.month
-            || date.year !== previous.year) {
-                console.info("⛅ SmallWeather Debug | hasDateChanged Day")
-            return true;
-        }
-        return false;
+    if (date.hour !== previous.hour
+        || date.day !== previous.day
+        || date.month !== previous.month
+        || date.year !== previous.year) {
+        console.warn("⛅ SmallWeather Debug | hasHourChanged")
+        await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
+        return 'true';
     }
+    return false;
 }
+// function hasHourChanged(calendar, timestamp) {
+//     let calc = (timestamp / (calendar.time.minutesInHour * calendar.time.secondsInMinute)) % calendar.time.hoursInDay
+//     return calc % 1 == 0
+// }
 
 async function injectIntoSmallTime(currentWeather) {
     const html = $('div[id="smalltime-app"]')
@@ -180,31 +192,31 @@ async function injectIntoSmallTime(currentWeather) {
     }
 }
 
-export async function weatherUpdate(hourToUse = null, dayToUse = 0, checkAPI = true, cache = true, addDayToQuery = 0) {
-    let hourly = currentConfig.hourly
+export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}) {
     let newWeather
     let currentWeather
-    if (checkAPI) {
-        if (cache) newWeather = await getWeather(cache, addDayToQuery);
-        else newWeather = await getWeather(cache, addDayToQuery, addDayToQuery);
+
+    console.info("⛅ SmallWeather Debug | weatherUpdate function. variable apiWeatherData.days[days]: ", days, hours, apiWeatherData.days[days])
+    if (!apiWeatherData.days[days]) fetchAPI = true
+
+    if (fetchAPI) {
+        if (cacheData) newWeather = await getWeather({ days: queryLength, cacheData });
+        else newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData });
     }
-    // if (checkAPI && cache) newWeather = await getWeather(cache, addDayToQuery);
-    // else if (checkAPI && !cache) newWeather = await getWeather(cache, addDayToQuery, addDayToQuery);
+    // if (fetchAPI && cacheData) newWeather = await getWeather(cacheData, queryLength);
+    // else if (fetchAPI && !cacheData) newWeather = await getWeather(cacheData, queryLength, queryLength);
     else newWeather = apiWeatherData
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
     console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
 
-    let missingDataHour = newWeather.days[dayToUse].hours[hourToUse].feelslike
-    let missingData = newWeather.days[dayToUse].feelslike
+    // let missingDataHour = newWeather.days[days].hours[hours].feelslike
+    // let missingData = newWeather.days[days].feelslike
 
-    if (hourly) {
-        if (!missingDataHour) currentWeather = newWeather.days[dayToUse].hours[hourToUse]
-        else currentWeather = newWeather.days[dayToUse].hours[hourToUse-1]
-    }
-    else currentWeather = newWeather.days[dayToUse]
+    if (hourly) currentWeather = newWeather.days[days].hours[hours]
+    else currentWeather = newWeather.days[days]
 
-    await treatWeatherObj(currentWeather, cache, system, newWeather.days[dayToUse].feelslikemax, newWeather.days[dayToUse].feelslikemin)
+    await treatWeatherObj(currentWeather, system, newWeather.days[days].feelslikemax, newWeather.days[days].feelslikemin)
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
 

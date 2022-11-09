@@ -7,6 +7,10 @@ form#sw-config {
     height: 72px;
 }
 
+#weather-preview-table {
+    left: 517px;
+}
+
 #weather-preview {
     display: flex;
     font-size: 14px;
