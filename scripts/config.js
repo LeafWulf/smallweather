@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings, mode, system } from "./settings.js";
-import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed } from "./util.js";
+import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
@@ -72,7 +72,9 @@ export class ConfigApp extends FormApplication {
         super.activateListeners(html);
         let tab
         let currentHour
+        let previewValue
         let app = ui.activeWindow
+
 
         // if (debug) console.info('==============================================THIS', this)
         // this.appWindow = document.getElementById('sw-config')
@@ -96,17 +98,19 @@ export class ConfigApp extends FormApplication {
         climateOptions.find(i => i.value === climate).selected = true
 
         html.find('#sw-config-save').on('click', async function () {
+            previewValue = Array.from($('.responstable').find('input[type="radio"]')).find(i => i.checked === true)?.value
             tab = html.find('.tab.active').attr('data-tab')
             currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             await ConfigApp.save(tab)
-            await weatherUpdate({ hours: currentHour })
+            if (previewValue) await weatherUpdate({days: previewValue, hours: currentHour, fetchAPI: false }, app.previewWeather)
+            else await weatherUpdate({ hours: currentHour })
+            $('#weather-preview-table').removeClass('show')
             game.modules.get(MODULE).configApp.close()
         })
         html.find('#apply-preview').on('click', async function () {
             tab = html.find('.tab.active').attr('data-tab')
             currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             let preview = {
-                dataUnit: system,
                 location: app.currentConfig?.location || app.getData().location,
                 date: app.currentConfig?.startdate || app.getData().startdate,
                 dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength || app.getData().querylength)
@@ -115,10 +119,10 @@ export class ConfigApp extends FormApplication {
             // console.warn(preview)
             let row = ''
             let previewWeather = await app.weatherUpdate({ hours: currentHour, cacheData: false }, preview);
-            previewWeather.forEach(element => {
+            previewWeather.days.forEach((element,index) => {
                 row += `<tr>
-                            <td><input type="radio"/></td>
-                            <td>${element.feelslike}${unit(system)}</td>
+                            <td><input type="radio" name="selpreview" value=${index}></td>
+                            <td>${roundNoFloat(fahrToCelsius(system, element.feelslike))}${unit(system)}</td>
                             <td>${element.conditions}</td>
                             <td>${stringfyWindSpeed(element.windspeed)}</td>
                             <td>${stringfyWindDir(element.winddir)}</td>
@@ -126,8 +130,7 @@ export class ConfigApp extends FormApplication {
                         </tr>`
             });
             $('.responstable').append(row)
-
-
+            app.previewWeather = previewWeather
             $('#weather-preview-table').addClass('show')
         })
     }
@@ -139,11 +142,9 @@ export class ConfigApp extends FormApplication {
         newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData }, preview);
 
         // if (hourly) currentWeather = newWeather.days[days].hours[hours]
-        /* else */ currentWeather = newWeather.days
+        // /* else */ currentWeather = newWeather.days
 
-        if (true) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
-
-        return currentWeather
+        return newWeather
     }
 
     getData() {

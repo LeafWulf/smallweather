@@ -1,7 +1,7 @@
 import { MODULE, MODULE_DIR } from "./const.js";
-import { treatWeatherObj } from "./util.js";
+import { addDays, treatWeatherObj } from "./util.js";
 import { registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed } from "./settings.js";
-import { getWeather } from "./weatherdata.js";
+import { getWeather, cacheWeatherData } from "./weatherdata.js";
 import { ConfigApp } from "./config.js"
 import { weatherApp } from "./app.js"
 
@@ -192,24 +192,29 @@ async function injectIntoSmallTime(currentWeather) {
     }
 }
 
-export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}) {
+export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}, previewWeather = false) {
     let newWeather
     let currentWeather
     hourly = currentConfig.hourly // colocar como variavel global que muda sempre quando salva o cachesettings
 
-    console.info("⛅ SmallWeather Debug | weatherUpdate function. variable apiWeatherData.days[days]: ", days, hours, apiWeatherData.days[days])
-    if (!apiWeatherData.days[days]) fetchAPI = true
+    // if (previewWeather) await game.settings.set(MODULE, "apiWeatherData", previewWeather)
+
+    // console.info("⛅ SmallWeather Debug | weatherUpdate function. variable apiWeatherData.days[days]: ", days, hours, apiWeatherData.days[days])
+    // if (!apiWeatherData.days[days]) fetchAPI = true
 
     if (fetchAPI) {
         if (cacheData) newWeather = await getWeather({ days: queryLength, cacheData });
         else newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData });
+    } else if (previewWeather) {
+        newWeather = previewWeather
+        await cacheWeatherData(previewWeather, days);
+        // await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime - (days * 86400))
     }
     // if (fetchAPI && cacheData) newWeather = await getWeather(cacheData, queryLength);
     // else if (fetchAPI && !cacheData) newWeather = await getWeather(cacheData, queryLength, queryLength);
     else newWeather = apiWeatherData
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
-    console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
 
     // let missingDataHour = newWeather.days[days].hours[hours].feelslike
     // let missingData = newWeather.days[days].feelslike
@@ -217,7 +222,11 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
     if (hourly) currentWeather = newWeather.days[days].hours[hours]
     else currentWeather = newWeather.days[days]
 
-    await treatWeatherObj(currentWeather, system, newWeather.days[days].feelslikemax, newWeather.days[days].feelslikemin)
+    currentWeather = treatWeatherObj(currentWeather, system, newWeather.days[days].feelslikemax, newWeather.days[days].feelslikemin)
+
+    /* if (!previewWeather) */ await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
+    await game.settings.set(MODULE, "currentWeather", currentWeather)
+    cacheSettings();
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
 
