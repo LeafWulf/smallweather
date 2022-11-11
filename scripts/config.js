@@ -42,6 +42,7 @@ export class ConfigApp extends FormApplication {
     }
 
     async _updateObject(ev, formData) {
+        console.log(formData)
         this.currentConfig = formData
     }
     // async _onSubmit(ev, formData)
@@ -126,6 +127,8 @@ export class ConfigApp extends FormApplication {
             $(".pwtable").empty()
             $('#weather-preview').remove()
             tab = html.find('.tab.active').attr('data-tab')
+            await game.settings.set(MODULE, 'mode', tab);
+            cacheSettings();
             currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             let injectPreview = ''
             let preview
