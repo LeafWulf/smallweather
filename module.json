@@ -20,7 +20,16 @@
   ],
   "relationships": {
     "systems": [],
-    "requires": []
+    "requires": [
+      {
+        "id": "foundryvtt-simple-calendar",
+        "type": "module"
+      },
+      {
+        "id": "smalltime",
+        "type": "module"
+      }
+    ]
   },
   "esmodules": [
     "scripts/smallweather.js"
