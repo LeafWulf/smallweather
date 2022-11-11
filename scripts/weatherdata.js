@@ -3,7 +3,7 @@ import { addDays } from "./util.js";
 import { weatherAPIKey, currentConfig, debug, cacheSettings, mode, system, simpleCalendarData } from "./settings.js";
 import { setClimateWater } from "./climate.js";
 
-export async function getWeather({ days = 0, query = currentConfig.querylength, cacheData = true } = {}, apiParameters = {}) {
+export async function getWeather({ days = 0, query = currentConfig.querylength, cacheData = true } = {}, apiParameters = false) {
     if (!weatherAPIKey) return
     let hourly = currentConfig.hourly
 
@@ -16,7 +16,7 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
     }
     if (hourly) apiDefaultParameters.include += '%2Chours'
 
-    if (mode === 'basic') {
+    if (mode === 'basic' && !apiParameters) {
         apiParameters = setClimateWater(currentConfig.climate, days)
     }
     apiParameters = { ...apiDefaultParameters, ...apiParameters }

@@ -19,7 +19,6 @@ Hooks.once('ready', async function () {
     currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
     hourly = currentConfig.hourly
     if (!weatherAPIKey) missingAPI()
-
 });
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {

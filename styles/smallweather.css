@@ -129,7 +129,7 @@
     background: none;
     height: 45px;
     margin-right: 2px;
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 
 #weather-app .timeSeparator {
