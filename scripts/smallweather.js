@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { addDays, treatWeatherObj } from "./util.js";
-import { registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed } from "./settings.js";
+import { registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed, weatherAPIKey } from "./settings.js";
 import { getWeather, cacheWeatherData } from "./weatherdata.js";
 import { ConfigApp } from "./config.js"
 import { weatherApp } from "./app.js"
@@ -18,56 +18,53 @@ Hooks.once('ready', async function () {
     console.info(" ======================================== ⛅ SmallWeather ======================================== ")
     currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
     hourly = currentConfig.hourly
+    if (!weatherAPIKey) missingAPI()
+
 });
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
     if (game.modules.get('smalltime')?.active) {
         await injectIntoSmallTime(currentWeatherCache)
     }
-    ConfigApp.toggleAppVis('init');
+    // ConfigApp.toggleAppVis('init');
 })
 
 Hooks.on("renderSettingsConfig", async function (app, html) {
-    console.info(app, html)
-    // $('div[data-settings-key="smallweather.weatherApiConfig"]').appendTo($('section[data-tab="smallweather"]')); //this code does the same thing
-    // const menu = html.find('div[data-settings-key="smallweather.weatherApiConfig"]');
-    // const list = html.find('section[data-tab="smallweather"]');
-    // list.append(menu);
     $('section[data-tab="smallweather"]').find('.submenu').appendTo($('section[data-tab="smallweather"]'))
 });
 
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, async function (data) {
-    if (true) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
+    if (debug) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
 
-    let cachedDate = SimpleCalendar.api.dateToTimestamp({
-        year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year,
-        month: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).month,
-        day: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).day,
-        hour: 0, minute: 0, seconds: 0
-    })
-    let currentDate = SimpleCalendar.api.dateToTimestamp({ year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0 })
-    let days = ((currentDate - cachedDate) / 86400) // index for the days array
-    let hours = data.date.hour //index for the hours array
-    if (!hourly) hours = 0;
+    if (weatherAPIKey) {
+        let cachedDate = SimpleCalendar.api.dateToTimestamp({
+            year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year,
+            month: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).month,
+            day: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).day,
+            hour: 0, minute: 0, seconds: 0
+        })
+        let currentDate = SimpleCalendar.api.dateToTimestamp({ year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0 })
+        let days = ((currentDate - cachedDate) / 86400) // index for the days array
+        let hours = data.date.hour //index for the hours array
+        if (!hourly) hours = 0;
 
-    if (await hasDateChanged(currentDate)) {
-        if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
-            await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
-        else {
-            if (debug) console.warn("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. No more cached data to use")
-            await weatherUpdate({ hours: hours, cacheData: false, queryLength: days }) //use the day with index 0, checking the api but without caching the result.
+        if (await hasDateChanged(currentDate)) {
+            if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+                await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
+            else {
+                if (debug) console.warn("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. No more cached data to use")
+                await weatherUpdate({ hours: hours, cacheData: false, queryLength: days }) //use the day with index 0, checking the api but without caching the result.
+            }
+        }
+
+        if (await hasHourChanged(currentDate, hours) && hourly) {
+            if (debug) console.info("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange.: ", days, hours)
+            if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+                await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
+            else
+                await weatherUpdate({ hours: hours, fetchAPI: false, cacheData: false })
         }
     }
-
-    if (await hasHourChanged(currentDate, hours) && hourly) {
-        console.error("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange.: ", days, hours)
-        if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
-            await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
-        else
-            await weatherUpdate({ hours: hours, fetchAPI: false, cacheData: false })
-    }
-
-    // if (true) console.info(`⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. currentFantasyDate: ${SimpleCalendar.api.timestampToDate(currentFantasyDate).display.date}, cachedFantasyDate: ${SimpleCalendar.api.timestampToDate(cachedFantasyDate).display.date}`)
 });
 
 async function hasDateChanged(currentDate) {
@@ -85,7 +82,6 @@ async function hasDateChanged(currentDate) {
     if (date.day !== previous.day
         || date.month !== previous.month
         || date.year !== previous.year) {
-        console.warn("⛅ SmallWeather Debug | hasDateChanged")
         await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
         return 'true';
     }
@@ -110,16 +106,11 @@ async function hasHourChanged(currentDate, hours) {
         || date.day !== previous.day
         || date.month !== previous.month
         || date.year !== previous.year) {
-        console.warn("⛅ SmallWeather Debug | hasHourChanged")
         await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
         return 'true';
     }
     return false;
 }
-// function hasHourChanged(calendar, timestamp) {
-//     let calc = (timestamp / (calendar.time.minutesInHour * calendar.time.secondsInMinute)) % calendar.time.hoursInDay
-//     return calc % 1 == 0
-// }
 
 async function injectIntoSmallTime(currentWeather) {
     const html = $('div[id="smalltime-app"]')
@@ -145,9 +136,7 @@ async function injectIntoSmallTime(currentWeather) {
         </div>
         <div id="rightHandle"></div>
         </form>`
-    // if (debug) console.info("⛅ SmallWeather Debug | injectIntoSmallTime Hook. variable injection: ", injection)
     const dragHandle = html.find('#dragHandle')
-    if (debug) console.info("⛅ SmallWeather Debug | injectIntoSmallTime Hook. variable dragHandle: ", dragHandle)
     const formGroup = dragHandle.closest("form")
     formGroup.after(injection)
     html.find('#rightHandle').on('click', async function () {
@@ -198,23 +187,15 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
     let currentWeather
     hourly = currentConfig.hourly // colocar como variavel global que muda sempre quando salva o cachesettings
 
-    // if (previewWeather) await game.settings.set(MODULE, "apiWeatherData", previewWeather)
-
-    // console.info("⛅ SmallWeather Debug | weatherUpdate function. variable apiWeatherData.days[days]: ", days, hours, apiWeatherData.days[days])
-    // if (!apiWeatherData.days[days]) fetchAPI = true
-
     if (fetchAPI) {
         if (cacheData) newWeather = await getWeather({ days: queryLength, cacheData });
         else newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData });
     } else if (previewWeather) {
         newWeather = previewWeather
         await cacheWeatherData(previewWeather, days);
-        // await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime - (days * 86400))
     }
-    // if (fetchAPI && cacheData) newWeather = await getWeather(cacheData, queryLength);
-    // else if (fetchAPI && !cacheData) newWeather = await getWeather(cacheData, queryLength, queryLength);
-    else newWeather = apiWeatherData
 
+    else newWeather = apiWeatherData
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
 
     // let missingDataHour = newWeather.days[days].hours[hours].feelslike
@@ -225,12 +206,28 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
 
     currentWeather = treatWeatherObj(currentWeather, system, newWeather.days[days].feelslikemax, newWeather.days[days].feelslikemin)
 
-    /* if (!previewWeather) */ await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
+    await game.settings.set(MODULE, "lastDateUsed", game.time.worldTime)
     await game.settings.set(MODULE, "currentWeather", currentWeather)
     cacheSettings();
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
-
     $("#weather-app").remove()
     await injectIntoSmallTime(currentWeather)
+}
+
+export function missingAPI() {
+    new Dialog({
+        title: "SmallWeather | API key is missing!",
+        content: '<p>In order to generate your API key go to:</p><a href="https://www.visualcrossing.com/sign-up">https://www.visualcrossing.com/sign-up</a><p>Then copy and paste it in SmallWeather settings.</p>',
+        buttons: {
+            yes: {
+                icon: "<i class='fas fa-check'></i>",
+                label: "OK",
+                callback: async () => {
+                    return
+                }
+            },
+        },
+        default: "yes",
+    }).render(true);
 }

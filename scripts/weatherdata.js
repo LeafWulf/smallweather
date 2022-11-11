@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { addDays } from "./util.js";
-import { weatherAPIKey, currentConfig, debug, cacheSettings, mode, system } from "./settings.js";
+import { weatherAPIKey, currentConfig, debug, cacheSettings, mode, system, simpleCalendarData } from "./settings.js";
 import { setClimateWater } from "./climate.js";
 
 export async function getWeather({ days = 0, query = currentConfig.querylength, cacheData = true } = {}, apiParameters = {}) {
@@ -31,11 +31,11 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
     let response = await apiCall.json()
 
     if (cacheData) await cacheWeatherData(response);
-    if (true) {
+    if (debug) {
         console.warn("⛅ SmallWeather Debug | async function getWeather. Api Parameters Data", apiParameters.location, apiParameters.date, apiParameters.dateFinal)
         console.warn("⛅ SmallWeather Debug | async function getWeather. Current Config Data", currentConfig.location, currentConfig.querylength, currentConfig.startdate)
-        // console.warn("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
-        // console.warn(url)
+        console.warn("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
+        console.warn(url)
     }
 
     return response

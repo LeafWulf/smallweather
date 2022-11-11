@@ -3,7 +3,10 @@ import { addDays } from "./util.js";
 import { weatherAPIKey, currentConfig, debug, cacheSettings, system } from "./settings.js";
 
 export function setClimateWater(climate, days) {
-    let simpleCalendarData = game.settings.get(MODULE, "simpleCalendarData")
+    let simpleCalendarData = {
+        timestamp: game.time.worldTime - (days * 86400),
+        season: SimpleCalendar.api.getCurrentSeason(),
+    }
     let currentSeason = simpleCalendarData.season
     let firstDayOfTheYearTimestamp = SimpleCalendar.api.dateToTimestamp({ year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year, month: 0, day: 0, hour: 0, minute: 0, second: 0 })
     let fantasyDayOfTheYear = Math.ceil((simpleCalendarData.timestamp - firstDayOfTheYearTimestamp) / 86400)
@@ -15,12 +18,9 @@ export function setClimateWater(climate, days) {
     let basicParameters = {
         location: climate.representativeLocation,
         date: `2010-${climate.seasons[currentSeason.icon].startingMonth}-${climate.seasons[currentSeason.icon].startingDay}`,
-        dateFinal:''
+        dateFinal: ''
     }
     basicParameters.date = addDays(basicParameters.date, syncSeasonOffset + days)
-
-    if (debug) console.info("⛅ SmallWeather Debug | climate. variable startdate: ", basicParameters.date)
-    if (debug) console.info("⛅ SmallWeather Debug | climate. variable location: ", basicParameters.location)
 
     return basicParameters
 }

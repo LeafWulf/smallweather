@@ -4,7 +4,16 @@ import { weatherUpdate } from "./smallweather.js";
 
 export let mode = 'basic';
 export let weatherAPIKey = null;
-export let currentWeather = null;
+export let currentWeather = {
+    feelslikeC: 20,
+    feelslikemaxC: 25,
+    feelslikeminC: 17,
+    winddirFriendly: 'North',
+    windspeedFriendly: 'Gentle Breeze',
+    conditions: 'clear',
+    unit: 'F',
+    icon: 'clear-day'
+};
 export let system = 'us'
 export let currentConfig = {
     location: 'Havana',
@@ -18,7 +27,7 @@ export let lastDateUsed
 export let apiWeatherData
 export let simpleCalendarData
 export let apiParametersCache
-export let debug = true
+export let debug = false
 
 export function registerSettings() {
     game.settings.register(MODULE, 'weatherAPIKey', {

@@ -1,8 +1,8 @@
 import { MODULE, MODULE_DIR } from "./const.js";
-import { debug, cacheSettings, mode, system, currentConfig, currentWeather } from "./settings.js";
+import { debug, cacheSettings, mode, system, currentConfig, currentWeather, weatherAPIKey } from "./settings.js";
 import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius } from "./util.js";
 import { setClimateWater } from "./climate.js";
-import { weatherUpdate } from "./smallweather.js";
+import { weatherUpdate, missingAPI } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
 
 export class ConfigApp extends FormApplication {
@@ -12,9 +12,17 @@ export class ConfigApp extends FormApplication {
         super();
     }
 
+    // render(force = false, options = {}) {
+    //     if (!weatherAPIKey) return missingAPI()
+    //     else super.render(force, options);
+    // }
+
     async _render(force = false, options = {}) {
-        await super._render(force, options);
-        ConfigApp._isOpen = true;
+        if (!weatherAPIKey) return missingAPI()
+        else {
+            await super._render(force, options);
+            ConfigApp._isOpen = true;
+        }
         // Remove the window from candidates for closing via Escape.
         // delete ui.windows[this.appId];
     }
@@ -73,6 +81,8 @@ export class ConfigApp extends FormApplication {
         let previewValue
         let row
         let app = ui.activeWindow
+        
+        if (!game.modules.get('smallweather').configApp) game.modules.get('smallweather').configApp = app
 
         // if (!app.previewWeather) html.find('#weather-preview').css("display", "none")
 
@@ -181,7 +191,7 @@ export class ConfigApp extends FormApplication {
     async weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}, preview = {}) {
         let newWeather
         newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData }, preview);
-        console.log(newWeather)
+        if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
         return newWeather
     }
 
