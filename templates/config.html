@@ -91,27 +91,6 @@
     </button>
     <hr id="separator-sw-config">
     <!-- Preview Weather -->
-    <fieldset id="weather-preview">
-        <legend id="wpreview">
-            <span>Preview Weather</span>
-        </legend>
-        <div id="preview-temp">
-            <img id="preview-temp-icon" src="/modules/smallweather/images/{{currentWeather.icon}}.webp"
-                style="border: none;"></img>
-            <span id="temp"> {{currentWeather.feelslike}}{{currentWeather.unit}}</span>
-        </div>
-        <div id="preview-info">
-            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp">
-                {{currentWeather.feelslikemax}}{{currentWeather.unit}}</span><br>
-            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp">
-                {{currentWeather.feelslikemin}}{{currentWeather.unit}}</span>
-        </div>
-        <div id="preview-info">
-            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> {{currentWeather.windspeedFriendly}}</span><br>
-            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> {{currentWeather.winddirFriendly}}</span>
-        </div><br>
-        <div id="preview-info" class="preview-string">{{currentWeather.conditions}}</div>
-    </fieldset>
     <!-- Submit -->
     <button type="button" id="sw-config-save">
         <i class="fas fa-save"></i>

@@ -1,5 +1,5 @@
 import { MODULE, MODULE_DIR } from "./const.js";
-import { debug, cacheSettings, mode, system } from "./settings.js";
+import { debug, cacheSettings, mode, system, currentConfig, currentWeather } from "./settings.js";
 import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate } from "./smallweather.js";
@@ -34,9 +34,7 @@ export class ConfigApp extends FormApplication {
     }
 
     async _updateObject(ev, formData) {
-        if (debug) console.info(ev, formData)
         this.currentConfig = formData
-        if (debug) console.info(this)
     }
     // async _onSubmit(ev, formData)
     // {
@@ -73,8 +71,10 @@ export class ConfigApp extends FormApplication {
         let tab
         let currentHour
         let previewValue
+        let row
         let app = ui.activeWindow
 
+        // if (!app.previewWeather) html.find('#weather-preview').css("display", "none")
 
         // if (debug) console.info('==============================================THIS', this)
         // this.appWindow = document.getElementById('sw-config')
@@ -102,25 +102,65 @@ export class ConfigApp extends FormApplication {
             tab = html.find('.tab.active').attr('data-tab')
             currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
             await ConfigApp.save(tab)
-            if (previewValue) await weatherUpdate({days: previewValue, hours: currentHour, fetchAPI: false }, app.previewWeather)
+            if (previewValue) {
+                await game.settings.set(MODULE, 'currentConfig', app.currentConfig);
+                cacheSettings();
+                await weatherUpdate({ days: previewValue, hours: currentHour, fetchAPI: app.currentConfig.hourly }, app.previewWeather)
+            }
             else await weatherUpdate({ hours: currentHour })
             $('#weather-preview-table').removeClass('show')
+            await new Promise(resolve => setTimeout(resolve, 300));
             game.modules.get(MODULE).configApp.close()
         })
         html.find('#apply-preview').on('click', async function () {
+            $(".pwtable").empty()
+            $('#weather-preview').remove()
             tab = html.find('.tab.active').attr('data-tab')
             currentHour = SimpleCalendar.api.timestampToDate(game.time.worldTime).hour
-            let preview = {
-                location: app.currentConfig?.location || app.getData().location,
-                date: app.currentConfig?.startdate || app.getData().startdate,
-                dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength || app.getData().querylength)
+            let injectPreview = ''
+            let preview
+            row = ''
+            if (tab === 'advanced') {
+                preview = {
+                    location: app.currentConfig?.location || app.getData().location,
+                    date: app.currentConfig?.startdate || app.getData().startdate,
+                    dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength || app.getData().querylength)
+                }
             }
-            // if (tab === 'basic') //mudar valores de preview
-            // console.warn(preview)
-            let row = ''
-            let previewWeather = await app.weatherUpdate({ hours: currentHour, cacheData: false }, preview);
-            previewWeather.days.forEach((element,index) => {
-                row += `<tr>
+            if (tab === 'basic') {
+                climate = Array.from($('select[name="climate"]')[0]).find(i => i.selected === true).value
+                preview = setClimateWater(climate, 0);
+            }
+            let previewWeather = await app.weatherUpdate({ cacheData: false }, preview);
+            if (tab === 'basic') {
+                let element = previewWeather.days[0]
+                injectPreview = `<fieldset id="weather-preview">
+                                    <legend id="wpreview">
+                                        <span>Preview Weather: ${climate}</span>
+                                    </legend>
+                                    <div id="preview-temp">
+                                        <img id="preview-temp-icon" src="/modules/smallweather/images/${element.icon}.webp"
+                                            style="border: none;"></img>
+                                        <span id="temp"> ${roundNoFloat(fahrToCelsius(system, element.feelslike))}${unit(system)}</span>
+                                    </div>
+                                    <div id="preview-info">
+                                        <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp">
+                                        ${roundNoFloat(fahrToCelsius(system, element.feelslikemax))}${unit(system)}</span><br>
+                                        <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp">
+                                        ${roundNoFloat(fahrToCelsius(system, element.feelslikemin))}${unit(system)}</span>
+                                    </div>
+                                    <div id="preview-info">
+                                        <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${stringfyWindSpeed(element.windspeed)}</span><br>
+                                        <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${stringfyWindDir(element.winddir)}</span>
+                                    </div><br>
+                                    <div id="preview-info" class="preview-string">${element.conditions}</div>
+                                </fieldset>`
+
+                $("#separator-sw-config").append(injectPreview);
+            }
+            if (tab === 'advanced') {
+                previewWeather.days.forEach((element, index) => {
+                    row += `<tr class="pwtable">
                             <td><input type="radio" name="selpreview" value=${index}></td>
                             <td>${roundNoFloat(fahrToCelsius(system, element.feelslike))}${unit(system)}</td>
                             <td>${element.conditions}</td>
@@ -128,40 +168,35 @@ export class ConfigApp extends FormApplication {
                             <td>${stringfyWindDir(element.winddir)}</td>
                             <td>${addDays(element.datetime, 0)}</td>
                         </tr>`
-            });
-            $('.responstable').append(row)
+                });
+                $('.responstable').append(row)
+            }
             app.previewWeather = previewWeather
+            app.previewConfig = app.currentConfig
+            // html.find('#weather-preview').css("display", "flex")
             $('#weather-preview-table').addClass('show')
         })
     }
 
     async weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}, preview = {}) {
         let newWeather
-        let currentWeather
-
         newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData }, preview);
-
-        // if (hourly) currentWeather = newWeather.days[days].hours[hours]
-        // /* else */ currentWeather = newWeather.days
-
+        console.log(newWeather)
         return newWeather
     }
 
     getData() {
         // Send values to the HTML template.
-        let currentConfig = game.settings.get(MODULE, 'currentConfig')
-        let currentWeather = game.settings.get(MODULE, 'currentWeather')
+        // let currentConfig = game.settings.get(MODULE, 'currentConfig')
+        // let currentWeather = game.settings.get(MODULE, 'currentWeather')
         let today = dateToString(new Date())
-        let maxYear = new Date().getUTCFullYear() - 1
         return {
             location: currentConfig?.location || 'Havana',
             startdate: currentConfig?.startdate || '2009-01-01',
-            querylength: currentConfig?.querylength || 14,
+            querylength: currentConfig?.querylength || 1,
             today,
             currentWeather,
-            maxYear,
             hourly: currentConfig.hourly ? 'checked' : 'unchecked',
-            startyear: currentConfig.startyear,
             climate: currentConfig.climate
         }
     }
@@ -183,6 +218,6 @@ export class ConfigApp extends FormApplication {
     // Toggle visibility of the main window.
     static async toggleAppVis(mode) {
         if (!game.modules.get('smalltime').viewAuth) return;
-        else game.modules.get(MODULE).configApp = await new ConfigApp().render(true);
+        else game.modules.get('smallweather').configApp = await new ConfigApp().render(true);
     }
 }

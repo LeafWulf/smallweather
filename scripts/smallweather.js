@@ -30,9 +30,10 @@ Hooks.on('renderSmallTimeApp', async function (app, html) {
 Hooks.on("renderSettingsConfig", async function (app, html) {
     console.info(app, html)
     // $('div[data-settings-key="smallweather.weatherApiConfig"]').appendTo($('section[data-tab="smallweather"]')); //this code does the same thing
-    const menu = html.find('div[data-settings-key="smallweather.weatherApiConfig"]');
-    const list = html.find('section[data-tab="smallweather"]');
-    list.append(menu);
+    // const menu = html.find('div[data-settings-key="smallweather.weatherApiConfig"]');
+    // const list = html.find('section[data-tab="smallweather"]');
+    // list.append(menu);
+    $('section[data-tab="smallweather"]').find('.submenu').appendTo($('section[data-tab="smallweather"]'))
 });
 
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, async function (data) {

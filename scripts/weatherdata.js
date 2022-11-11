@@ -3,10 +3,6 @@ import { addDays } from "./util.js";
 import { weatherAPIKey, currentConfig, debug, cacheSettings, mode, system } from "./settings.js";
 import { setClimateWater } from "./climate.js";
 
-//"&include=alerts%2Ccurrent%2Cdays%2Cevents%2Chours";
-// 97JMBZAX2DRQ96SR2QT28K7WH
-// 78WK5HM86QBUYJ394TZGC2HLA
-
 export async function getWeather({ days = 0, query = currentConfig.querylength, cacheData = true } = {}, apiParameters = {}) {
     if (!weatherAPIKey) return
     let hourly = currentConfig.hourly
@@ -16,9 +12,9 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
         location: currentConfig.location,
         date: addDays(currentConfig.startdate, days),
         dateFinal: addDays(currentConfig.startdate, query),
-        include: "&include=alerts%2Cdays"
+        include: "&include=alerts%2Cdays%2Cevents"
     }
-    if (hourly) apiDefaultParameters.include += '%2Cevents%2Chours'
+    if (hourly) apiDefaultParameters.include += '%2Chours'
 
     if (mode === 'basic') {
         apiParameters = setClimateWater(currentConfig.climate, days)
@@ -27,7 +23,6 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
 
     let url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${apiParameters.location}/${apiParameters.date}/${apiParameters.dateFinal}?unitGroup=${apiParameters.dataUnit}${apiParameters.include}&key=${weatherAPIKey}&contentType=json`
 
-    // return game.settings.get('smallweather', "apiWeatherData")
     let apiCall = await fetch(url, {
         "method": "GET",
         "headers": {}

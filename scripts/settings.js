@@ -9,7 +9,9 @@ export let system = 'us'
 export let currentConfig = {
     location: 'Havana',
     startdate: '2009-01-01',
-    querylength: '14'
+    querylength: '1',
+    climate: 'tropical',
+    hourly: false
 }
 
 export let lastDateUsed
@@ -151,7 +153,7 @@ export function registerSettings() {
         hint: ``,
         scope: 'world',
         config: false,
-        type: String,
+        type: Number,
         default: '',
         restricted: true,
         onChange: () => {
