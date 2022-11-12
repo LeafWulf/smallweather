@@ -21,6 +21,7 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
     }
     apiParameters = { ...apiDefaultParameters, ...apiParameters }
 
+    //&lang=id
     let url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${apiParameters.location}/${apiParameters.date}/${apiParameters.dateFinal}?unitGroup=${apiParameters.dataUnit}${apiParameters.include}&key=${weatherAPIKey}&contentType=json`
 
     let apiCall = await fetch(url, {
@@ -37,7 +38,6 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
         console.warn("⛅ SmallWeather Debug | async function getWeather. variable simpleCalendarData: ", simpleCalendarData)
         console.warn(url)
     }
-
     return response
 }
 

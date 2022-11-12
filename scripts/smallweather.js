@@ -112,6 +112,7 @@ async function hasHourChanged(currentDate, hours) {
 }
 
 async function injectIntoSmallTime(currentWeather) {
+    Hooks.call('smallweatherUpdate', currentWeather, currentConfig.hourly);
     const html = $('div[id="smalltime-app"]')
     // const template = await fetch(`modules/smallweather/templates/smallweather.html`);
     // const injection = await template.text();
@@ -131,7 +132,7 @@ async function injectIntoSmallTime(currentWeather) {
             <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
         </div>
         <div id="configWeather"><i class="fa-solid fa-bars"></i></div>
-        <div id="weather-text">${currentWeather.conditions}</div>
+        <div id="weather-text">${game.i18n.localize(currentWeather.conditions)}</div>
         </div>
         <div id="rightHandle"></div>
         </form>`
