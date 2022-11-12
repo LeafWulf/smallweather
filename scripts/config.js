@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings, mode, system, currentConfig, currentWeather, weatherAPIKey } from "./settings.js";
-import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius } from "./util.js";
+import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate, missingAPI } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
@@ -142,14 +142,14 @@ export class ConfigApp extends FormApplication {
             }
             if (tab === 'basic') {
                 climate = Array.from($('select[name="climate"]')[0]).find(i => i.selected === true).value
-                preview = setClimateWater(climate, 0);
+                preview = setClimateWater(climate, 0); //arruma a soma desses dias (segundo argumento) e resolvo o problema do ano.
             }
             let previewWeather = await app.weatherUpdate({ cacheData: false }, preview);
             if (tab === 'basic') {
                 let element = previewWeather.days[0]
                 injectPreview = `<fieldset id="weather-preview">
                                     <legend id="wpreview">
-                                        <span>Preview Weather: ${climate}</span>
+                                        <span>Preview Weather: ${capitalizeFirstLetter(climate)}</span>
                                     </legend>
                                     <div id="preview-temp">
                                         <img id="preview-temp-icon" src="/modules/smallweather/images/${element.icon}.webp"
@@ -169,7 +169,7 @@ export class ConfigApp extends FormApplication {
                                     <div id="preview-info" class="preview-string">${element.conditions}</div>
                                 </fieldset>`
 
-                $("#separator-sw-config").append(injectPreview);
+                $("#separator-sw-config").after(injectPreview);
             }
             if (tab === 'advanced') {
                 previewWeather.days.forEach((element, index) => {
