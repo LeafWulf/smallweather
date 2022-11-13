@@ -6,7 +6,7 @@
 Most weather generation models for RPGs suffer from conflict between simplicity leading to unrealistic results and complex implementation that requires research. Instead of creating yet another weather simulation, this module uses Mother Nature and online API for real world historical data from any past date (or even the current real world weather) from any place in the world. This mod allows the GM who uses [SmallTime](https://foundryvtt.com/packages/smalltime) to show weather to their players.
 
 ## Functions
-This module fetches weather data from an online API,  offer basic or advanced options for the GM. 
+This module fetches weather data from an online API, shows the current weather adding a drawer to SmallTime app and offer basic or advanced options for the GM. 
 
 ![app](readme/app.gif)
 
