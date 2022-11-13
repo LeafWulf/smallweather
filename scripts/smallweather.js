@@ -144,12 +144,14 @@ async function injectIntoSmallTime(currentWeather) {
             $('#weather-app').addClass('show');
             $('#weather-app').animate({ width: '285px', left: "+=200" }, 80);
             $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
+            $('#rightHandle').css("width", "291px")
             await game.settings.set(MODULE, 'show', true);
 
         } else {
             $('#weather-app').removeClass('show');
             $('#weather-app').animate({ width: '200px', left: "-=200" }, 80);
             $("#smalltime-app .window-content").css("border-radius", "5px")
+            $('#rightHandle').css("width", "206px")
             await game.settings.set(MODULE, 'show', false);
         }
         cacheSettings();
@@ -178,6 +180,7 @@ async function injectIntoSmallTime(currentWeather) {
         $('#weather-app').addClass('show');
         $('#weather-app').css("width", '285px')
         $('#weather-app').css("left", "+=200")
+        $('#rightHandle').css("width", "291px")
         $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
     }
 }
@@ -197,6 +200,8 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
 
     else newWeather = apiWeatherData
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
+
+    if (typeof newWeather == 'number') return errorAPI(newWeather)
 
     // let missingDataHour = newWeather.days[days].hours[hours].feelslike
     // let missingData = newWeather.days[days].feelslike
@@ -219,6 +224,23 @@ export function missingAPI() {
     new Dialog({
         title: "SmallWeather | API key is missing!",
         content: '<p>In order to generate your API key go to:</p><a href="https://www.visualcrossing.com/sign-up">https://www.visualcrossing.com/sign-up</a><p>Then copy and paste it in SmallWeather settings.</p>',
+        buttons: {
+            yes: {
+                icon: "<i class='fas fa-check'></i>",
+                label: "OK",
+                callback: async () => {
+                    return
+                }
+            },
+        },
+        default: "yes",
+    }).render(true);
+}
+
+export function errorAPI(error) {
+    new Dialog({
+        title: "SmallWeather | API Error!",
+        content: `<p>API fetch method returned ${error} error.</p>`,
         buttons: {
             yes: {
                 icon: "<i class='fas fa-check'></i>",

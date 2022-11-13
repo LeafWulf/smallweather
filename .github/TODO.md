@@ -1,3 +1,6 @@
 - [ ] keep a cached copy of the previous day weather, in case the GM needs to comeback in time.  
 - [ ] look if this is possible to keep like 5 days cached to save query cost.
 - [ ] tem algum problema com o botão de hour/day que ta salvando o estado quando nao deve.
+- [ ] adicionar verificação pra saber se a data final não ultrapassa a data atual
+- [ ] corrigir problema do ano da setclimate para o preview (ja coloquei um comentario com a solução)
+- [ ] adicionar verificação pra casos que a API falhar

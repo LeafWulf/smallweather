@@ -2,7 +2,7 @@ import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings, mode, system, currentConfig, currentWeather, weatherAPIKey } from "./settings.js";
 import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter } from "./util.js";
 import { setClimateWater } from "./climate.js";
-import { weatherUpdate, missingAPI } from "./smallweather.js";
+import { weatherUpdate, missingAPI, errorAPI } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
 
 export class ConfigApp extends FormApplication {
@@ -145,6 +145,7 @@ export class ConfigApp extends FormApplication {
                 preview = setClimateWater(climate, 0); //arruma a soma desses dias (segundo argumento) e resolvo o problema do ano.
             }
             let previewWeather = await app.weatherUpdate({ cacheData: false }, preview);
+            if (typeof previewWeather == 'number') return errorAPI(previewWeather)
             if (tab === 'basic') {
                 let element = previewWeather.days[0]
                 injectPreview = `<fieldset id="weather-preview">
