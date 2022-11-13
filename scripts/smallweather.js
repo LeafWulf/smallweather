@@ -240,7 +240,7 @@ export function missingAPI() {
 export function errorAPI(error) {
     new Dialog({
         title: "SmallWeather | API Error!",
-        content: `<p>API fetch method returned ${error} error.</p>`,
+        content: `<div id="errordialogcontent"><img id="errorsign" width="32"  style="border:none" src="${MODULE_DIR}/images/error.svg" ></img><span id="errordialog">API fetch method returned ${error} error.</span></div>`,
         buttons: {
             yes: {
                 icon: "<i class='fas fa-check'></i>",
@@ -251,5 +251,5 @@ export function errorAPI(error) {
             },
         },
         default: "yes",
-    }).render(true);
+    }, {height: 120}).render(true);
 }

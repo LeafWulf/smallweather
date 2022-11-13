@@ -29,7 +29,7 @@ export async function getWeather({ days = 0, query = currentConfig.querylength, 
         "headers": {}
     })
     
-    if (true) return apiCall.status
+    if (!apiCall.ok) return apiCall.status
     
     let response = await apiCall.json()
 

@@ -159,3 +159,14 @@
 #weather-app .hide-for-players {
     visibility: hidden;
 }
+
+#errordialogcontent {
+    text-align: center
+}
+span#errordialog {
+    vertical-align: super;
+    line-height: 18px !important;
+    padding: 8px;
+    position: relative;
+    top: -5px;
+}
