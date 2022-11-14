@@ -96,7 +96,7 @@ export function registerSettings() {
     game.settings.register(MODULE, 'show', {
         name: 'show',
         hint: '',
-        scope: 'world',
+        scope: 'client',
         config: false,
         type: Boolean,
         default: false,

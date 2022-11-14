@@ -9,8 +9,74 @@ export function treatWeatherObj(currentWeather, system, feelslikemax, feelslikem
     currentWeather.feelslikemaxC = roundNoFloat(fahrToCelsius(system, feelslikemax))
     currentWeather.feelslikeminC = roundNoFloat(fahrToCelsius(system, feelslikemin))
     currentWeather.unit = unit(system)
+    currentWeather.string = stringfyWeather(currentWeather.cloudcover, currentWeather.humidity, inToMm(currentWeather.precip), currentWeather.precipprob, currentWeather.snow, currentWeather.snowdepth, fahrToCelsius('metric', currentWeather.temp), currentWeather.visibility, currentWeather.dew, currentWeather.windspeed)
 
     return currentWeather
+}
+
+export function inToMm(number) {
+    return number * 25.4
+}
+
+// https://www.visualcrossing.com/resources/documentation/weather-data/weather-data-documentation/
+export function stringfyWeather(cloudCover, humidity, precipitation, precipProb, snow, snowDepth, temperature, visibility, dew, windSpeed) {
+    let weatherStr = '', cloudStr = '', precStr = '', visiStr = '';
+
+    // https://spectrumlocalnews.com/nc/charlotte/weather-stories/2019/07/07/mostly-sunny--partly-cloudy--mostly-cloudy--what-s-the-difference-
+    if (cloudCover <= 10 && precipProb == 0)
+        cloudStr = 'clear'
+    else if (cloudCover <= 20 && precipProb == 0)
+        cloudStr = 'fair'
+    else if (cloudCover <= 60)
+        cloudStr = 'partly cloudy'
+    else if (cloudCover <= 90)
+        cloudStr = 'mostly cloudy'
+    else cloudStr = 'overcast'
+
+    // https://climate.weather.gc.ca/glossary_e.html and https://weatherins.com/rain-guidelines/
+    if (precipProb == 100) {
+        if (precipitation <= 0.2) {
+            if (temperature > -1) precStr = 'Drizzle'
+            else precStr = 'Snow grains'
+            precStr += ', '
+        }
+        else if (precipitation < 2.5)
+            precStr = 'Light ' + precType(temperature, humidity)
+        else if (precipitation <= 6.5)
+            precStr = 'Moderate ' + precType(temperature, humidity)
+        else if (precipitation >= 7 && precipitation <= 14)
+            precStr = 'Heavy ' + precType(temperature, humidity)
+        else if (temperature < -1) return weatherStr = 'Blizzard' // more study for this case
+        else return weatherStr = 'Thunderstorm' // this should happen with high precipitation only inside 1 hour length, the next hour should have low cloud cover. Still gotta account for hailstorm.
+    }
+
+    // https://ambientweather.com/faqs/question/view/id/1816/#:~:text=Mist%20forms%20when%20the%20relative,time%2C%20the%20humidity%20will%20increase. and https://www.weather.gov/source/zhu/ZHU_Training_Page/fog_stuff/forecasting_fog/FORECASTING_FOG.htm and https://mediawiki.ivao.aero/index.php?title=Fog,_mist_and_haze
+    if (windSpeed < 18) {
+        if (visibility <= 0.63 && Math.abs(temperature - dew) <= 2.5)
+            visiStr = ', with fog'
+        else if (visibility >= 1.26 && visibility < 3.1 && humidity >= 60)
+            visiStr = ', with mist'
+        else if (visibility < 3.1 && humidity < 60)
+            visiStr = ', with haze'
+    }
+    weatherStr = precStr + cloudStr + visiStr
+    return capitalizeFirstLetter(weatherStr)
+}
+
+function precType(temperature, humidity) {
+    let precStr = ''
+    // https://newtoski.com/how-humidity-affects-snow/ and https://sites.psu.edu/siowfa14/2014/10/24/why-does-humidity-affect-snow/#:~:text=In%20relation%20to%20snow%2C%20when,is%20high%20the%20snow%20melts.
+    if (temperature <= -6.7)
+        precStr = 'snow'
+    else if (temperature <= -1 && humidity <= 40)
+        precStr = 'snow'
+    else if (temperature <= 0) {
+        if (humidity <= 70) precStr = 'sleet'
+        else if (humidity <= 90) precStr = 'freezing rain'
+        else if (humidity <= 100) precStr = 'rain'
+    }
+    else precStr = 'rain'
+    return precStr + ', '
 }
 
 export function addDays(date, days) {

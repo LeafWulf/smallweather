@@ -17,7 +17,7 @@ export function setClimateWater(climate, days) {
     climate = eval(climate)
     let basicParameters = { //preciso arrumar uma solução pra evolução do ano e lidar com erro de quando acabar api do dia.
         location: climate.representativeLocation,
-        date: `2010-${climate.seasons[currentSeason.icon].startingMonth}-${climate.seasons[currentSeason.icon].startingDay}`,
+        date: `2020-${climate.seasons[currentSeason.icon].startingMonth}-${climate.seasons[currentSeason.icon].startingDay}`,
         dateFinal: ''
     }
     basicParameters.date = addDays(basicParameters.date, syncSeasonOffset + days)

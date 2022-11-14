@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings, mode, system, currentConfig, currentWeather, weatherAPIKey } from "./settings.js";
-import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter } from "./util.js";
+import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter, stringfyWeather, inToMm } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate, missingAPI, errorAPI } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
@@ -167,7 +167,7 @@ export class ConfigApp extends FormApplication {
                                         <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${stringfyWindSpeed(element.windspeed)}</span><br>
                                         <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${stringfyWindDir(element.winddir)}</span>
                                     </div><br>
-                                    <div id="preview-info" class="preview-string">${element.conditions}</div>
+                                    <div id="preview-info" class="preview-string">${stringfyWeather(element.cloudcover, element.humidity, inToMm(element.precip), element.precipprob, element.snow, element.snowdepth, fahrToCelsius('metric', element.temp), element.visibility, element.dew, element.windspeed)}</div>
                                 </fieldset>`
 
                 $("#separator-sw-config").after(injectPreview);

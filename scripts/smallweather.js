@@ -22,46 +22,51 @@ Hooks.once('ready', async function () {
 });
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
-    if (game.modules.get('smalltime')?.active) {
-        await injectIntoSmallTime(currentWeatherCache)
-    }
+    if (game.user.isGM)
+        await injectIntoSmallTime(currentWeatherCache, true)
+    else
+        injectIntoSmallTimePlayer(currentWeatherCache, true)
     // ConfigApp.toggleAppVis('init');
 })
 
 Hooks.on("renderSettingsConfig", async function (app, html) {
+    // Everything here is GM-only.
+    if (!game.user.isGM) return;
     $('section[data-tab="smallweather"]').find('.submenu').appendTo($('section[data-tab="smallweather"]'))
 });
 
+
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, async function (data) {
-    if (debug) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
+    if (game.user.isGM) {
+        if (debug) console.info('⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. data variable: ', data)
+        if (weatherAPIKey) {
+            let cachedDate = SimpleCalendar.api.dateToTimestamp({
+                year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year,
+                month: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).month,
+                day: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).day,
+                hour: 0, minute: 0, seconds: 0
+            })
+            let currentDate = SimpleCalendar.api.dateToTimestamp({ year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0 })
+            let days = ((currentDate - cachedDate) / 86400) // index for the days array
+            let hours = data.date.hour //index for the hours array
+            if (!hourly) hours = 0;
 
-    if (weatherAPIKey) {
-        let cachedDate = SimpleCalendar.api.dateToTimestamp({
-            year: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).year,
-            month: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).month,
-            day: SimpleCalendar.api.timestampToDate(simpleCalendarData.timestamp).day,
-            hour: 0, minute: 0, seconds: 0
-        })
-        let currentDate = SimpleCalendar.api.dateToTimestamp({ year: data.date.year, month: data.date.month, day: data.date.day, hour: 0, minute: 0, seconds: 0 })
-        let days = ((currentDate - cachedDate) / 86400) // index for the days array
-        let hours = data.date.hour //index for the hours array
-        if (!hourly) hours = 0;
-
-        if (await hasDateChanged(currentDate)) {
-            if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
-                await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
-            else {
-                if (debug) console.warn("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. No more cached data to use")
-                await weatherUpdate({ hours: hours, cacheData: false, queryLength: days }) //use the day with index 0, checking the api but without caching the result.
+            if (await hasDateChanged(currentDate)) {
+                if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+                    await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
+                else {
+                    if (debug) console.warn("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange. No more cached data to use")
+                    await weatherUpdate({ hours: hours, cacheData: false, queryLength: days }) //use the day with index 0, checking the api but without caching the result.
+                }
             }
-        }
 
-        if (await hasHourChanged(currentDate, hours) && hourly) {
-            if (debug) console.info("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange.: ", days, hours)
-            if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
-                await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
-            else
-                await weatherUpdate({ hours: hours, fetchAPI: false, cacheData: false })
+            if (await hasHourChanged(currentDate, hours) && hourly) {
+                if (debug) console.info("⛅ SmallWeather Debug | SimpleCalendar.Hooks.DateTimeChange.: ", days, hours)
+                if (0 <= days && days <= currentConfig.querylength && mode === 'advanced')
+                    await weatherUpdate({ hours: hours, days: days, fetchAPI: false, cacheData: false })
+                else
+                    await weatherUpdate({ hours: hours, fetchAPI: false, cacheData: false })
+            }
         }
     }
 });
@@ -111,8 +116,8 @@ async function hasHourChanged(currentDate, hours) {
     return false;
 }
 
-async function injectIntoSmallTime(currentWeather) {
-    Hooks.call('smallweatherUpdate', currentWeather, currentConfig.hourly);
+async function injectIntoSmallTime(currentWeather, load) {
+    if (!load) Hooks.call('smallweatherUpdate', currentWeather, currentConfig.hourly);
     const html = $('div[id="smalltime-app"]')
     // const template = await fetch(`modules/smallweather/templates/smallweather.html`);
     // const injection = await template.text();
@@ -132,7 +137,7 @@ async function injectIntoSmallTime(currentWeather) {
             <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
         </div>
         <div id="configWeather"><i class="fa-solid fa-bars"></i></div>
-        <div id="weather-text">${game.i18n.localize(currentWeather.conditions)}</div>
+        <div id="weather-text">${game.i18n.localize(currentWeather.string)}</div>
         </div>
         <div id="rightHandle"></div>
         </form>`
@@ -181,6 +186,75 @@ async function injectIntoSmallTime(currentWeather) {
         $('#weather-app').css("width", '285px')
         $('#weather-app').css("left", "+=200")
         $('#rightHandle').css("width", "291px")
+        $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
+    }
+}
+
+async function injectIntoSmallTimePlayer(currentWeather, load) {
+    const html = $('div[id="smalltime-app"]')
+    // const template = await fetch(`modules/smallweather/templates/smallweather.html`);
+    // const injection = await template.text();
+    const injection = `
+        <form class="flexcol" id="weather-app">
+        <div id="displayContainer-weatherapp">
+        <div id="current-temp">
+            <img id="temp-icon" src="${MODULE_DIR}/images/${currentWeather.icon}.webp" ></img>
+            <span id="temp"> ${currentWeather.feelslikeC}${currentWeather.unit}</span>
+        </div>
+        <div id="high-low">
+            <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikemaxC}${currentWeather.unit}</span><br>
+            <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp"> ${currentWeather.feelslikeminC}${currentWeather.unit}</span>
+        </div>
+        <div id="wind">
+            <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${currentWeather.windspeedFriendly}</span><br>
+            <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
+        </div>
+        <div id="weather-text">${game.i18n.localize(currentWeather.string)}</div>
+        </div>
+        <div id="rightHandle"></div>
+        </form>`
+    const dragHandle = html.find('#dragHandle')
+    const formGroup = dragHandle.closest("form")
+    formGroup.after(injection)
+    html.find('#rightHandle').on('click', async function () {
+        if (!$('#weather-app').hasClass('show')) {
+            $('#weather-app').addClass('show');
+            $('#weather-app').animate({ width: '255px', left: "+=200" }, 80);
+            $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
+            $('#rightHandle').css("width", "261px")
+            await game.settings.set(MODULE, 'show', true);
+
+        } else {
+            $('#weather-app').removeClass('show');
+            $('#weather-app').animate({ width: '200px', left: "-=200" }, 80);
+            $("#smalltime-app .window-content").css("border-radius", "5px")
+            $('#rightHandle').css("width", "206px")
+            await game.settings.set(MODULE, 'show', false);
+        }
+        cacheSettings();
+    });
+    html.find('#timeDisplay').on('click', async function () {
+        let formerHeight = $("#smalltime-app").css("height");
+        await new Promise(resolve => setTimeout(resolve, 100));
+        let smalltimeHeight = $("#smalltime-app").css("height")
+        $("#weather-app").css("height", smalltimeHeight)
+        if (formerHeight > smalltimeHeight) $("#weather-text").css("display", "none")
+        else $("#weather-text").css("display", "unset")
+    });
+    const dateDisplayShow = game.settings.get('smalltime', 'date-showing');
+    if (!dateDisplayShow) {
+        $("#weather-text").css("display", "none")
+        $("#weather-app").css("height", $("#smalltime-app").css("height"))
+    }
+    html.find('#current-temp').on('click', async function () {
+        // await weatherUpdate()
+    })
+    show = game.settings.get(MODULE, 'show');
+    if (show) {
+        $('#weather-app').addClass('show');
+        $('#weather-app').css("width", '255px')
+        $('#weather-app').css("left", "+=200")
+        $('#rightHandle').css("width", "261px")
         $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
     }
 }
@@ -251,5 +325,5 @@ export function errorAPI(error) {
             },
         },
         default: "yes",
-    }, {height: 120}).render(true);
+    }, { height: 120 }).render(true);
 }
