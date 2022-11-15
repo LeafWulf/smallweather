@@ -9,7 +9,10 @@ export function treatWeatherObj(currentWeather, system, feelslikemax, feelslikem
     currentWeather.feelslikemaxC = roundNoFloat(fahrToCelsius(system, feelslikemax))
     currentWeather.feelslikeminC = roundNoFloat(fahrToCelsius(system, feelslikemin))
     currentWeather.unit = unit(system)
-    currentWeather.string = stringfyWeather(currentWeather.cloudcover, currentWeather.humidity, inToMm(currentWeather.precip), currentWeather.precipprob, currentWeather.snow, currentWeather.snowdepth, fahrToCelsius('metric', currentWeather.temp), currentWeather.visibility, currentWeather.dew, currentWeather.windspeed)
+
+    let stringIcon = stringfyWeather(currentWeather.cloudcover, currentWeather.humidity, inToMm(currentWeather.precip), currentWeather.precipprob, currentWeather.snow, currentWeather.snowdepth, fahrToCelsius('metric', currentWeather.temp), currentWeather.visibility, currentWeather.dew, currentWeather.windspeed, currentWeather.datetime)
+
+    Object.assign(currentWeather, stringIcon)
 
     return currentWeather
 }
@@ -19,8 +22,10 @@ export function inToMm(number) {
 }
 
 // https://www.visualcrossing.com/resources/documentation/weather-data/weather-data-documentation/
-export function stringfyWeather(cloudCover, humidity, precipitation, precipProb, snow, snowDepth, temperature, visibility, dew, windSpeed) {
-    let weatherStr = '', cloudStr = '', precStr = '', visiStr = '';
+export function stringfyWeather(cloudCover, humidity, precipitation, precipProb, snow, snowDepth, temperature, visibility, dew, windSpeed, dateTime) {
+    let weatherStr = '', cloudStr = '', precStr = '', visiStr = '', icon = '';
+    let obj = {}, effect = [];
+    dateTime = Math.abs(dateTime.slice(0, 2))
 
     // https://spectrumlocalnews.com/nc/charlotte/weather-stories/2019/07/07/mostly-sunny--partly-cloudy--mostly-cloudy--what-s-the-difference-
     if (cloudCover <= 10 && precipProb == 0)
@@ -32,6 +37,13 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
     else if (cloudCover <= 90)
         cloudStr = 'mostly cloudy'
     else cloudStr = 'overcast'
+
+    icon = removeSpaces(cloudStr)
+    effect.push(camelize(icon).replace('-', ''))
+
+    if (icon != 'overcast')
+        if (dateTime >= 6 && dateTime <= 18) icon += '-day'
+        else icon += '-night'
 
     // https://climate.weather.gc.ca/glossary_e.html and https://weatherins.com/rain-guidelines/
     if (precipProb == 100) {
@@ -46,21 +58,38 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
             precStr = 'Moderate ' + precType(temperature, humidity)
         else if (precipitation >= 7 && precipitation <= 14)
             precStr = 'Heavy ' + precType(temperature, humidity)
-        else if (temperature < -1) return weatherStr = 'Blizzard' // more study for this case
-        else return weatherStr = 'Thunderstorm' // this should happen with high precipitation only inside 1 hour length, the next hour should have low cloud cover. Still gotta account for hailstorm.
+        else if (temperature < -1) return obj = { weatherStr: 'Blizzard', icon: 'snow' } // more study for this case
+        else return obj = { weatherStr: 'Thunderstorm', icon: 'thunderstorm' } // this should happen with high precipitation only inside 1 hour length, the next hour should have low cloud cover. Still gotta account for hailstorm.
     }
 
+    if (precStr) {
+        icon = removeSpaces(precStr)
+        effect.push(camelize(icon).replace('-', ''))
+    }
+    
     // https://ambientweather.com/faqs/question/view/id/1816/#:~:text=Mist%20forms%20when%20the%20relative,time%2C%20the%20humidity%20will%20increase. and https://www.weather.gov/source/zhu/ZHU_Training_Page/fog_stuff/forecasting_fog/FORECASTING_FOG.htm and https://mediawiki.ivao.aero/index.php?title=Fog,_mist_and_haze
     if (windSpeed < 18) {
-        if (visibility <= 0.63 && Math.abs(temperature - dew) <= 2.5)
-            visiStr = ', with fog'
-        else if (visibility >= 1.26 && visibility < 3.1 && humidity >= 60)
-            visiStr = ', with mist'
-        else if (visibility < 3.1 && humidity < 60)
-            visiStr = ', with haze'
+        if (visibility) {
+            if (visibility <= 0.63 && Math.abs(temperature - dew) <= 2.5)
+                visiStr = ', with fog'
+            else if (visibility >= 1.26 && visibility < 3.1 && humidity >= 60)
+                visiStr = ', with mist'
+            else if (visibility < 3.1 && humidity < 60)
+                visiStr = ', with haze'
+        }
     }
+    
+    if (!precStr && visiStr) {
+        icon = removeSpaces(visiStr)
+        effect.push(camelize(icon).replace('-', ''))
+    }
+
     weatherStr = precStr + cloudStr + visiStr
-    return capitalizeFirstLetter(weatherStr)
+
+    obj.weatherStr = capitalizeFirstLetter(weatherStr)
+    obj.icon = icon
+    obj.effect = effect
+    return obj
 }
 
 function precType(temperature, humidity) {
@@ -112,6 +141,21 @@ export function fahrToCelsius(system, fahrTemp) {
 
 export function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export function removeSpaces(string) {
+    string = string.replace('with ', '')
+    string = string.replace(', ', '')
+    string = string.replace(/[\s+]/g, '-').toLowerCase()
+    string = string.replace('--', '-').toLowerCase()
+    return string
+}
+
+function camelize(str) {
+    return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
+        if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+        return index === 0 ? match.toLowerCase() : match.toUpperCase();
+    });
 }
 
 export function mphToKph(system, mph) {

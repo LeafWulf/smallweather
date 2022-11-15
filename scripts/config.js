@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { debug, cacheSettings, mode, system, currentConfig, currentWeather, weatherAPIKey } from "./settings.js";
-import { dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter, stringfyWeather, inToMm } from "./util.js";
+import { treatWeatherObj, dateToString, addDays, unit, stringfyWindDir, stringfyWindSpeed, roundNoFloat, fahrToCelsius, capitalizeFirstLetter, stringfyWeather, inToMm } from "./util.js";
 import { setClimateWater } from "./climate.js";
 import { weatherUpdate, missingAPI, errorAPI } from "./smallweather.js";
 import { getWeather } from "./weatherdata.js";
@@ -147,7 +147,7 @@ export class ConfigApp extends FormApplication {
             let previewWeather = await app.weatherUpdate({ cacheData: false }, preview);
             if (typeof previewWeather == 'number') return errorAPI(previewWeather)
             if (tab === 'basic') {
-                let element = previewWeather.days[0]
+                let element = treatWeatherObj(previewWeather.days[0], system, previewWeather.days[0].feelslikemax, previewWeather.days[0].feelslikemin)
                 injectPreview = `<fieldset id="weather-preview">
                                     <legend id="wpreview">
                                         <span>Preview Weather: ${capitalizeFirstLetter(climate)}</span>
@@ -155,19 +155,19 @@ export class ConfigApp extends FormApplication {
                                     <div id="preview-temp">
                                         <img id="preview-temp-icon" src="/modules/smallweather/images/${element.icon}.webp"
                                             style="border: none;"></img>
-                                        <span id="temp"> ${roundNoFloat(fahrToCelsius(system, element.feelslike))}${unit(system)}</span>
+                                        <span id="temp"> ${element.feelslikeC}${element.unit}</span>
                                     </div>
                                     <div id="preview-info">
                                         <i class="fas fa-temperature-high" id="fa-icon"></i><span id="temp">
-                                        ${roundNoFloat(fahrToCelsius(system, element.feelslikemax))}${unit(system)}</span><br>
+                                        ${currentWeather.feelslikemaxC}${currentWeather.unit}</span><br>
                                         <i class="fas fa-temperature-low" id="fa-icon"></i><span id="temp">
-                                        ${roundNoFloat(fahrToCelsius(system, element.feelslikemin))}${unit(system)}</span>
+                                        ${currentWeather.feelslikeminC}${currentWeather.unit}</span>
                                     </div>
                                     <div id="preview-info">
                                         <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${stringfyWindSpeed(element.windspeed)}</span><br>
                                         <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${stringfyWindDir(element.winddir)}</span>
                                     </div><br>
-                                    <div id="preview-info" class="preview-string">${stringfyWeather(element.cloudcover, element.humidity, inToMm(element.precip), element.precipprob, element.snow, element.snowdepth, fahrToCelsius('metric', element.temp), element.visibility, element.dew, element.windspeed)}</div>
+                                    <div id="preview-info" class="preview-string">${game.i18n.localize(currentWeather.weatherStr)}</div>
                                 </fieldset>`
 
                 $("#separator-sw-config").after(injectPreview);

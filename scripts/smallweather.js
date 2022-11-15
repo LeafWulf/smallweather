@@ -23,13 +23,13 @@ Hooks.once('ready', async function () {
 });
 
 Hooks.on('ready', async function () {
-    game.socket.on(`module.smalltime`, (data) => {
+    game.socket.on('module.smallweather', (data) => {
         doSocket(data);
     });
 });
 
 Hooks.on('smallweatherUpdate', async function (weather, hourly) {
-    SmallTimeApp.emitSocket('handleWeatherApp', weather);
+    emitSocket('handleWeatherApp', weather);
 })
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
@@ -150,7 +150,7 @@ async function injectIntoSmallTime(currentWeather, load) {
             <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
         </div>
         <div id="configWeather"><i class="fa-solid fa-bars"></i></div>
-        <div id="weather-text">${game.i18n.localize(currentWeather.string)}</div>
+        <div id="weather-text">${game.i18n.localize(currentWeather.weatherStr)}</div>
         </div>
         <div id="rightHandle"></div>
         </form>`
@@ -225,7 +225,7 @@ async function injectIntoSmallTimePlayer(currentWeather, load) {
             <i class="fas fa-wind" id="fa-icon"></i><span id="temp"> ${currentWeather.windspeedFriendly}</span><br>
             <i class="far fa-compass" id="fa-icon"></i><span id="temp"> ${currentWeather.winddirFriendly}</span>
         </div>
-        <div id="weather-text">${game.i18n.localize(currentWeather.string)}</div>
+        <div id="weather-text">${game.i18n.localize(currentWeather.weatherStr)}</div>
         </div>
         <div id="rightHandle"></div>
         </form>`
