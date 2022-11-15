@@ -28,6 +28,7 @@ export let apiWeatherData
 export let simpleCalendarData
 export let apiParametersCache
 export let debug = false
+export let allowPlayers = false
 
 export function registerSettings() {
     game.settings.register(MODULE, 'weatherAPIKey', {
@@ -57,6 +58,18 @@ export function registerSettings() {
         onChange: async () => {
             cacheSettings();
             await weatherUpdate(0, false, false);
+        },
+    });
+    game.settings.register(MODULE, 'allowPlayers', {
+        name: 'Allow Players To See Weather App ',
+        hint: `Allow players to have the weather app and see the current weather information.`,
+        scope: 'world',
+        config: true,
+        type: Boolean,
+        default: allowPlayers,
+        restricted: true,
+        onChange: () => {
+            cacheSettings();
         },
     });
     game.settings.registerMenu(MODULE, "weatherApiConfig", {
@@ -197,6 +210,7 @@ export async function cacheSettings() {
     apiWeatherData = game.settings.get(MODULE, 'apiWeatherData');
     simpleCalendarData = game.settings.get(MODULE, 'simpleCalendarData');
     debug = game.settings.get(MODULE, 'debug');
+    allowPlayers = game.settings.get(MODULE, 'allowPlayers');
     apiParametersCache = game.settings.get(MODULE, 'apiParametersCache');
     lastDateUsed = game.settings.get(MODULE, 'lastDateUsed');
 }

@@ -15,14 +15,14 @@
 - [x] "Light Freezing Rain", "Freezing Rain", "Heavy Freezing Rain"
 - [ ] "Ice", "Hail", "Hail Showers"
 - [x] "Light Snow", "Snow", "Heavy Snow", "Snow Showers"
-- [ ] 
+
 - [ ] "Thunderstorm"
 - [ ] "Thunderstorm Without Precipitation"
 - [ ] "Lightning Without Thunder"
 - [ ] "Funnel Cloud/Tornado"
-- [ ] 
+
 - [ ] "Dust storm", "Diamond Dust"
-- [ ] 
+
 - [ ] "Squalls"
 - [ ] "Mist", "Fog", "Freezing Fog"
 - [ ] "Smoke Or Haze"

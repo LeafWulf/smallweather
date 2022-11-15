@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { addDays, treatWeatherObj } from "./util.js";
-import { registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed, weatherAPIKey } from "./settings.js";
+import { allowPlayers, registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed, weatherAPIKey } from "./settings.js";
 import { getWeather, cacheWeatherData } from "./weatherdata.js";
 import { ConfigApp } from "./config.js"
 import { weatherApp } from "./app.js"
@@ -24,7 +24,7 @@ Hooks.once('ready', async function () {
 Hooks.on('renderSmallTimeApp', async function (app, html) {
     if (game.user.isGM)
         await injectIntoSmallTime(currentWeatherCache, true)
-    else
+    else if (allowPlayers)
         injectIntoSmallTimePlayer(currentWeatherCache, true)
     // ConfigApp.toggleAppVis('init');
 })
