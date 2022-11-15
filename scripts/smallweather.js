@@ -19,7 +19,18 @@ Hooks.once('ready', async function () {
     currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
     hourly = currentConfig.hourly
     if (!weatherAPIKey) missingAPI()
+
 });
+
+Hooks.on('ready', async function () {
+    game.socket.on(`module.smalltime`, (data) => {
+        doSocket(data);
+    });
+});
+
+Hooks.on('smallweatherUpdate', async function (weather, hourly) {
+    SmallTimeApp.emitSocket('handleWeatherApp', weather);
+})
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
     if (game.user.isGM)
@@ -34,7 +45,6 @@ Hooks.on("renderSettingsConfig", async function (app, html) {
     if (!game.user.isGM) return;
     $('section[data-tab="smallweather"]').find('.submenu').appendTo($('section[data-tab="smallweather"]'))
 });
-
 
 Hooks.on(SimpleCalendar.Hooks.DateTimeChange, async function (data) {
     if (game.user.isGM) {
@@ -117,7 +127,10 @@ async function hasHourChanged(currentDate, hours) {
 }
 
 async function injectIntoSmallTime(currentWeather, load) {
-    if (!load) Hooks.call('smallweatherUpdate', currentWeather, currentConfig.hourly);
+    if (!load) {
+        Hooks.call('smallweatherUpdate', currentWeather, currentConfig.hourly);
+        $("#weather-app").remove()
+    }
     const html = $('div[id="smalltime-app"]')
     // const template = await fetch(`modules/smallweather/templates/smallweather.html`);
     // const injection = await template.text();
@@ -191,6 +204,9 @@ async function injectIntoSmallTime(currentWeather, load) {
 }
 
 async function injectIntoSmallTimePlayer(currentWeather, load) {
+    if (!load) {
+        $("#weather-app").remove()
+    }
     const html = $('div[id="smalltime-app"]')
     // const template = await fetch(`modules/smallweather/templates/smallweather.html`);
     // const injection = await template.text();
@@ -290,7 +306,6 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
     cacheSettings();
 
     if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable currentWeather: ", currentWeather)
-    $("#weather-app").remove()
     await injectIntoSmallTime(currentWeather)
 }
 
@@ -326,4 +341,20 @@ export function errorAPI(error) {
         },
         default: "yes",
     }, { height: 120 }).render(true);
+}
+
+// Helper function for handling sockets.
+function emitSocket(type, payload) {
+    game.socket.emit('module.smallweather', {
+        type: type,
+        payload: payload,
+    });
+}
+async function doSocket(data) {
+    if (data.type === 'handleWeatherApp') {
+        if (!game.user.isGM) handleWeatherApp(data.payload);
+    }
+}
+function handleWeatherApp(weather) {
+    return injectIntoSmallTimePlayer(weather, false)
 }
