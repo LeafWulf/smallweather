@@ -81,7 +81,7 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
     
     if (!precStr && visiStr) {
         icon = removeSpaces(visiStr)
-        effect.push(camelize(icon).replace('-', ''))
+        // effect.push(camelize(icon).replace('-', '')) When I add effects for mist, haze and fog in Weather FX I re-implement this
     }
 
     weatherStr = precStr + cloudStr + visiStr

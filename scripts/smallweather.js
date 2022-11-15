@@ -1,6 +1,6 @@
 import { MODULE, MODULE_DIR } from "./const.js";
 import { addDays, treatWeatherObj } from "./util.js";
-import { allowPlayers, registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed, weatherAPIKey } from "./settings.js";
+import { allowPlayers, registerSettings, cacheSettings, system, apiWeatherData, debug, currentConfig, simpleCalendarData, mode, apiParametersCache, lastDateUsed, weatherAPIKey, currentWeather } from "./settings.js";
 import { getWeather, cacheWeatherData } from "./weatherdata.js";
 import { ConfigApp } from "./config.js"
 import { weatherApp } from "./app.js"
@@ -12,11 +12,11 @@ let hourly
 Hooks.once("init", () => {
     registerSettings();
     cacheSettings();
+    currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
 });
 
 Hooks.once('ready', async function () {
     console.info(" ======================================== ⛅ SmallWeather ======================================== ")
-    currentWeatherCache = game.settings.get(MODULE, "currentWeather") || ""
     hourly = currentConfig.hourly
     if (!weatherAPIKey) missingAPI()
 
@@ -34,9 +34,9 @@ Hooks.on('smallweatherUpdate', async function (weather, hourly) {
 
 Hooks.on('renderSmallTimeApp', async function (app, html) {
     if (game.user.isGM)
-        await injectIntoSmallTime(currentWeatherCache, true)
+        await injectIntoSmallTime(currentWeather, true)
     else if (allowPlayers)
-        injectIntoSmallTimePlayer(currentWeatherCache, true)
+        injectIntoSmallTimePlayer(currentWeather, true)
     // ConfigApp.toggleAppVis('init');
 })
 
@@ -101,7 +101,6 @@ async function hasDateChanged(currentDate) {
     }
     return false;
 }
-
 async function hasHourChanged(currentDate, hours) {
     let lastDateUsed = game.settings.get(MODULE, "lastDateUsed")
     let previous = {
@@ -202,7 +201,6 @@ async function injectIntoSmallTime(currentWeather, load) {
         $("#smalltime-app .window-content").css("border-radius", "5px 0 0 5px")
     }
 }
-
 async function injectIntoSmallTimePlayer(currentWeather, load) {
     if (!load) {
         $("#weather-app").remove()
@@ -281,20 +279,17 @@ export async function weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cach
     hourly = currentConfig.hourly // colocar como variavel global que muda sempre quando salva o cachesettings
 
     if (fetchAPI) {
-        if (cacheData) newWeather = await getWeather({ days: queryLength, cacheData });
-        else newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData });
+        if (cacheData) newWeather = await getWeather({ hourly, days: queryLength, cacheData }); // here we get new data but using the query size specified by the user
+        else newWeather = await getWeather({ hourly, days: queryLength, query: queryLength, cacheData }); // Here when we need new data but we only go for one more day
     } else if (previewWeather) {
-        newWeather = previewWeather
+        newWeather = previewWeather // here we are using the data fetched by the preview.
         await cacheWeatherData(previewWeather, days);
     }
-
     else newWeather = apiWeatherData
-    if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
+
+    if (debug) console.warn("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather.days[days].datetime, newWeather)
 
     if (typeof newWeather == 'number') return errorAPI(newWeather)
-
-    // let missingDataHour = newWeather.days[days].hours[hours].feelslike
-    // let missingData = newWeather.days[days].feelslike
 
     if (hourly) currentWeather = newWeather.days[days].hours[hours]
     else currentWeather = newWeather.days[days]
@@ -325,7 +320,6 @@ export function missingAPI() {
         default: "yes",
     }).render(true);
 }
-
 export function errorAPI(error) {
     new Dialog({
         title: "SmallWeather | API Error!",
