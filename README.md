@@ -17,8 +17,10 @@ This module fetches weather data from an online API, shows the current weather a
 *Default: blank*  
 SmallWeather uses https://visualcrossing.com API in order to fetch weather data, so you must provide an API key to use the service. The API is free for 1000 queries per day, should be enough for most games. Keep in mind that if you want the module to change the weather hourly, then it will cost 24 queries per day; still enough for most games.  
 
-|![warn](images/error.svg) | IMPORTANT: The API key is a group of 25 characters that look something like this `J34LJCY3TUZRLZJEMHHJ3KTRE`. This is the API key, and this is what is supposed to be used in this field. |
+|![warn](images/error.svg) | IMPORTANT: The API key is a group of 25 characters that look something like this `J34LJCY3TUZRLZJEMHHJ3KTRE`. You will find this API Key in your Visual-Crossing account details and it will link your account to SmallWeather.  It is NOT the API Link found in the Visual-Crossing Query Builder.. |
 | :---: | :---- |
+
+![visual-crossing-api](readme/visual-crossing-api.png)
 
 **Unit System**  
 *Default: Imperial/US*  
