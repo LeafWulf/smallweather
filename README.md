@@ -2,7 +2,7 @@
 [![Foundry Hub Endorsements](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fsmallweather%2Fshield%2Fendorsements)](https://www.foundryvtt-hub.com/package/smallweather/)
 [![Foundry Hub Comments](https://img.shields.io/endpoint?logoColor=white&url=https%3A%2F%2Fwww.foundryvtt-hub.com%2Fwp-json%2Fhubapi%2Fv1%2Fpackage%2Fsmallweather%2Fshield%2Fcomments)](https://www.foundryvtt-hub.com/package/smallweather/)  
 [![Latest Downloads](https://img.shields.io/github/downloads/LeafWulf/smallweather/latest/module.zip?color=blue&label=latest%20downloads)](https://github.com/LeafWulf/smallweather/releases/latest) [![Total Downloads](https://img.shields.io/github/downloads/LeafWulf/smallweather/module.zip?color=blue&label=total%20downloads)](https://github.com/LeafWulf/smallweather/releases)  
-[![Discord](https://dcbadge.vercel.app/api/shield/219289132235489280?style=flat)](https://discordapp.com/users/219289132235489280) [![Ko-fi](https://img.shields.io/badge/Ko--fi-winterwulf-0374b5?logo=kofi)](https://ko-fi.com/winterwulf)
+[![Discord](https://dcbadge.vercel.app/api/shield/219289132235489280?style=flat)](https://discordapp.com/users/219289132235489280) [![Ko-fi](https://img.shields.io/badge/Ko--fi-winterwulf-ff5e5b?logo=kofi&logoColor=white&)](https://ko-fi.com/winterwulf)
 
 # SmallWeather
 Most weather generation models for RPGs suffer from conflict between simplicity leading to unrealistic results and complex implementation that requires research. Instead of creating yet another weather simulation, this module uses Mother Nature and online API for real world historical data from any past date (or even the current real world weather) from any place in the world. This mod allows the GM who uses [SmallTime](https://foundryvtt.com/packages/smalltime) to show weather to their players.
@@ -16,6 +16,13 @@ This module fetches weather data from an online API, shows the current weather a
 **Weather API Key**  
 *Default: blank*  
 SmallWeather uses https://visualcrossing.com API in order to fetch weather data, so you must provide an API key to use the service. The API is free for 1000 queries per day, should be enough for most games. Keep in mind that if you want the module to change the weather hourly, then it will cost 24 queries per day; still enough for most games.  
+
+---
+
+|![warn](images/error.svg) | IMPORTANT: The API key is a group of 25 characters that look something like this `J34LJCY3TUZRLZJEMHHJ3KTRE`. This is the API key, and this is what is supposed to be used in this field. |
+|--|--|
+
+---
 
 **Unit System**  
 *Default: Imperial/US*  
