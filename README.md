@@ -20,7 +20,7 @@ SmallWeather uses https://visualcrossing.com API in order to fetch weather data,
 |![warn](images/error.svg) | IMPORTANT: The API key is a group of 25 characters that look something like this `J34LJCY3TUZRLZJEMHHJ3KTRE`. You will find this API Key in your Visual-Crossing account details and it will link your account to SmallWeather.  It is NOT the API Link found in the Visual-Crossing Query Builder.. |
 | :---: | :---- |
 
-![visual-crossing-api](readme/visual-crossing-api.png)
+![visual-crossing-acc](readme/visual-crossing-acc.png)
 
 **Unit System**  
 *Default: Imperial/US*  
