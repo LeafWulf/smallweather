@@ -184,11 +184,18 @@ export class ConfigApp extends FormApplication {
                         </tr>`
                 });
                 $('.responstable').append(row)
+                $('#weather-preview-table').css('left', app.position.width)
             }
             app.previewWeather = previewWeather
             app.previewConfig = app.currentConfig
             // html.find('#weather-preview').css("display", "flex")
             $('#weather-preview-table').addClass('show')
+        })
+        html.find('.item[data-tab="advanced"]').on('click', async function () {
+            $('#weather-preview').remove()
+        })
+        html.find('.item[data-tab="basic"]').on('click', async function () {
+            $('#weather-preview-table').removeClass('show')
         })
     }
 

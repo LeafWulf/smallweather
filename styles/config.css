@@ -72,6 +72,7 @@ label.toggle-switchy {
 }
 
 #weather-preview-table {
+    display: block;
     left: 517px;
     position: absolute;
     top: 30px;
@@ -82,7 +83,7 @@ label.toggle-switchy {
     transform-origin: left;
     overflow-y: scroll;
 
-    background: url(../ui/parchment.jpg) repeat;
+    /* background: url(../ui/parchment.jpg) repeat; */
 }
 #weather-preview-table.show {
     transform: scaleX(1);

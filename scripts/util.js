@@ -10,7 +10,7 @@ export function treatWeatherObj(currentWeather, system, feelslikemax, feelslikem
     currentWeather.feelslikeminC = roundNoFloat(fahrToCelsius(system, feelslikemin))
     currentWeather.unit = unit(system)
 
-    let stringIcon = stringfyWeather(currentWeather.cloudcover, currentWeather.humidity, inToMm(currentWeather.precip), currentWeather.precipprob, currentWeather.snow, currentWeather.snowdepth, fahrToCelsius('metric', currentWeather.temp), currentWeather.visibility, currentWeather.dew, currentWeather.windspeed, currentWeather.datetime)
+    let stringIcon = stringfyWeather(currentWeather.cloudcover, currentWeather.humidity, inToMm(currentWeather.precip), currentWeather.precipprob, currentWeather.preciptype, currentWeather.snow, currentWeather.snowdepth, fahrToCelsius('metric', currentWeather.temp), currentWeather.visibility, currentWeather.dew, currentWeather.windspeed, currentWeather.datetime)
 
     Object.assign(currentWeather, stringIcon)
 
@@ -22,9 +22,10 @@ export function inToMm(number) {
 }
 
 // https://www.visualcrossing.com/resources/documentation/weather-data/weather-data-documentation/
-export function stringfyWeather(cloudCover, humidity, precipitation, precipProb, snow, snowDepth, temperature, visibility, dew, windSpeed, dateTime) {
+export function stringfyWeather(cloudCover, humidity, precipitation, precipProb, precipType, snow, snowDepth, temperature, visibility, dew, windSpeed, dateTime) {
     let weatherStr = '', cloudStr = '', precStr = '', visiStr = '', icon = '';
     let obj = {}, effect = [];
+    const isSnow = precipType?.includes('snow')
     dateTime = Math.abs(dateTime.slice(0, 2))
 
     // https://spectrumlocalnews.com/nc/charlotte/weather-stories/2019/07/07/mostly-sunny--partly-cloudy--mostly-cloudy--what-s-the-difference-
@@ -48,17 +49,17 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
     // https://climate.weather.gc.ca/glossary_e.html and https://weatherins.com/rain-guidelines/
     if (precipProb == 100) {
         if (precipitation <= 0.2) {
-            if (temperature > -1) precStr = 'Drizzle'
+            if (temperature > 0 && !isSnow) precStr = 'Drizzle'
             else precStr = 'Snow grains'
             precStr += ', '
         }
-        else if (precipitation < 2.5)
-            precStr = 'Light ' + precType(temperature, humidity)
-        else if (precipitation <= 6.5)
-            precStr = 'Moderate ' + precType(temperature, humidity)
-        else if (precipitation >= 7 && precipitation <= 14)
-            precStr = 'Heavy ' + precType(temperature, humidity)
-        else if (temperature < -1) return obj = { weatherStr: 'Blizzard', icon: 'snow' } // more study for this case
+        else if (precipitation < 2)
+            precStr = 'Light ' + precType(temperature, humidity, isSnow)
+        else if (precipitation <= 7.5)
+            precStr = 'Moderate ' + precType(temperature, humidity, isSnow)
+        else if (precipitation > 7.5 && precipitation <= 16)
+            precStr = 'Heavy ' + precType(temperature, humidity, isSnow)
+        else if (temperature < 0 && isSnow) return obj = { weatherStr: 'Blizzard', icon: 'snow' } // more study for this case
         else return obj = { weatherStr: 'Thunderstorm', icon: 'thunderstorm' } // this should happen with high precipitation only inside 1 hour length, the next hour should have low cloud cover. Still gotta account for hailstorm.
     }
 
@@ -92,18 +93,11 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
     return obj
 }
 
-function precType(temperature, humidity) {
+function precType(temperature, humidity, isSnow) {
     let precStr = ''
     // https://newtoski.com/how-humidity-affects-snow/ and https://sites.psu.edu/siowfa14/2014/10/24/why-does-humidity-affect-snow/#:~:text=In%20relation%20to%20snow%2C%20when,is%20high%20the%20snow%20melts.
-    if (temperature <= -6.7)
+    if (temperature < 0 && isSnow)
         precStr = 'snow'
-    else if (temperature <= -1 && humidity <= 40)
-        precStr = 'snow'
-    else if (temperature <= 0) {
-        if (humidity <= 70) precStr = 'sleet'
-        else if (humidity <= 90) precStr = 'freezing rain'
-        else if (humidity <= 100) precStr = 'rain'
-    }
     else precStr = 'rain'
     return precStr + ', '
 }
