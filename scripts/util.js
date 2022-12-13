@@ -59,8 +59,8 @@ export function stringfyWeather(cloudCover, humidity, precipitation, precipProb,
             precStr = 'Moderate ' + precType(temperature, humidity, isSnow)
         else if (precipitation > 7.5 && precipitation <= 16)
             precStr = 'Heavy ' + precType(temperature, humidity, isSnow)
-        else if (temperature < 0 && isSnow) return obj = { weatherStr: 'Blizzard', icon: 'snow' } // more study for this case
-        else return obj = { weatherStr: 'Thunderstorm', icon: 'thunderstorm' } // this should happen with high precipitation only inside 1 hour length, the next hour should have low cloud cover. Still gotta account for hailstorm.
+        else if (temperature < 0 && isSnow)  precStr = 'Blizzard, '// more study for this case
+        else precStr = 'Thunderstorm, ' // Still gotta account for hailstorm.
     }
 
     if (precStr) {

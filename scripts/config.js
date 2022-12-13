@@ -82,7 +82,7 @@ export class ConfigApp extends FormApplication {
         let previewValue
         let row
         let app = ui.activeWindow
-        
+
         if (!game.modules.get('smallweather').configApp) game.modules.get('smallweather').configApp = app
 
         // if (!app.previewWeather) html.find('#weather-preview').css("display", "none")
@@ -116,7 +116,8 @@ export class ConfigApp extends FormApplication {
             if (previewValue) {
                 await game.settings.set(MODULE, 'currentConfig', app.currentConfig);
                 cacheSettings();
-                await weatherUpdate({ days: previewValue, hours: currentHour, fetchAPI: app.currentConfig.hourly }, app.previewWeather)
+                await weatherUpdate({ queryLength: parseInt(previewValue), hours: currentHour, fetchAPI: app.currentConfig.hourly, cacheData: false }, app.previewWeather)
+                // This was caching the weather result from API, but also spending more querycost because this gets the whole period, the new function call above only get the chosen date. which spend less querycost. await weatherUpdate({ days: previewValue, hours: currentHour, fetchAPI: app.currentConfig.hourly }, app.previewWeather)
             }
             else await weatherUpdate({ hours: currentHour })
             $('#weather-preview-table').removeClass('show')
@@ -137,7 +138,7 @@ export class ConfigApp extends FormApplication {
                 preview = {
                     location: app.currentConfig?.location || app.getData().location,
                     date: app.currentConfig?.startdate || app.getData().startdate,
-                    dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength || app.getData().querylength)
+                    dateFinal: addDays(app.currentConfig?.startdate || app.getData().startdate, app.currentConfig?.querylength - 1 || app.getData().querylength - 1)
                 }
             }
             if (tab === 'basic') {
@@ -202,7 +203,7 @@ export class ConfigApp extends FormApplication {
     async weatherUpdate({ hours = 0, days = 0, fetchAPI = true, cacheData = true, queryLength = 0 } = {}, preview = {}) {
         let newWeather
         newWeather = await getWeather({ days: queryLength, query: queryLength, cacheData }, preview);
-        if (debug) console.info("⛅ SmallWeather Debug | weatherUpdate function. variable newWeather: ", newWeather)
+        if (debug) console.info("⛅ SmallWeather Debug | ConfigApp.weatherUpdate function. variable newWeather: ", newWeather)
         return newWeather
     }
 
