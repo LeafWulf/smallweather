@@ -27,3 +27,13 @@
 - [ ] "Squalls"
 - [ ] "Mist", "Fog", "Freezing Fog"
 - [ ] "Smoke Or Haze"
+
+## Requests
+- [ ] save the weather into the date in simple calendar
+- [ ] set the weather for future dates
+- [ ] Add a Weather Roll Tables
+
+## Bugs
+- [ ] If you dont have the "Full" SmallTime window set (with ther Sun, The Time and Day/Month) - you loose SmallWeather info "space".
+If you set only Sun + Time you get not (from your example) the "Partyaly Clouded" - as the space is lost ...
+If you set only the Sun - it is nothing to see more in the SmallWeather window ...
